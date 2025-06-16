@@ -8,8 +8,14 @@ import {
   File,
   Settings,
   Cloud,
+  Eye,
+  EyeOff,
 } from "lucide-react";
-import { commandPaletteOpenAtom, currentPathAtom } from "@/store/atoms";
+import {
+  commandPaletteOpenAtom,
+  currentPathAtom,
+  showHiddenFilesAtom,
+} from "@/store/atoms";
 import { cn } from "@/lib/utils";
 
 interface Command {
@@ -23,7 +29,8 @@ interface Command {
 
 const CommandPalette = () => {
   const [isOpen, setIsOpen] = useAtom(commandPaletteOpenAtom);
-  const [, setCurrentPath] = useAtom(currentPathAtom); // Remove unused currentPath
+  const [, setCurrentPath] = useAtom(currentPathAtom);
+  const [showHiddenFiles, setShowHiddenFiles] = useAtom(showHiddenFilesAtom);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -31,6 +38,16 @@ const CommandPalette = () => {
   const homeBase = useAtom(currentPathAtom)[0].split("/").slice(0, 3).join("/"); // e.g. /home/unnikrishnan
 
   const commands: Command[] = [
+    {
+      id: "toggle-hidden-files",
+      title: showHiddenFiles ? "Hide Hidden Files" : "Show Hidden Files",
+      description: showHiddenFiles
+        ? "Hide files and folders that start with a dot"
+        : "Show files and folders that start with a dot",
+      icon: showHiddenFiles ? EyeOff : Eye,
+      action: () => setShowHiddenFiles(!showHiddenFiles),
+      group: "View",
+    },
     {
       id: "new-file",
       title: "New File",
