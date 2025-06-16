@@ -175,33 +175,48 @@ const Toolbar = () => {
                 )}
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-48 p-2">
+            <PopoverContent className="w-48 bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 p-2">
               <div className="space-y-1">
                 <Button
                   variant={sortMode === "name" ? "secondary" : "ghost"}
-                  className="w-full justify-start text-sm h-8"
+                  className={cn(
+                    "w-full justify-start text-sm h-8",
+                    sortMode === "name"
+                      ? "bg-neutral-200 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+                      : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100"
+                  )}
                   onClick={() => setSortMode("name")}
                 >
                   Sort by Name
                 </Button>
                 <Button
                   variant={sortMode === "size" ? "secondary" : "ghost"}
-                  className="w-full justify-start text-sm h-8"
+                  className={cn(
+                    "w-full justify-start text-sm h-8",
+                    sortMode === "size"
+                      ? "bg-neutral-200 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+                      : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100"
+                  )}
                   onClick={() => setSortMode("size")}
                 >
                   Sort by Size
                 </Button>
                 <Button
                   variant={sortMode === "modified" ? "secondary" : "ghost"}
-                  className="w-full justify-start text-sm h-8"
+                  className={cn(
+                    "w-full justify-start text-sm h-8",
+                    sortMode === "modified"
+                      ? "bg-neutral-200 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+                      : "text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100"
+                  )}
                   onClick={() => setSortMode("modified")}
                 >
                   Sort by Modified
                 </Button>
-                <hr className="my-1" />
+                <hr className="border-t border-neutral-200 dark:border-neutral-800" />
                 <Button
                   variant="ghost"
-                  className="w-full justify-start text-sm h-8"
+                  className="w-full justify-start text-sm h-8 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100"
                   onClick={toggleSortOrder}
                 >
                   {sortOrder === "asc" ? "Ascending" : "Descending"}

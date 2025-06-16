@@ -181,61 +181,61 @@ const FileExplorer = () => {
       <>
         <div className="fixed inset-0 z-40" onClick={closeContextMenu} />
         <div
-          className="fixed z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg py-2 min-w-48"
+          className="fixed z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg shadow-lg min-w-48 overflow-hidden"
           style={{ left: contextMenu.x, top: contextMenu.y }}
         >
           {isFileOrFolder ? (
             <>
-              <button className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200">
+              <button className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
                 Open
               </button>
-              <button className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200">
+              <button className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
                 Open in New Tab
               </button>
-              <hr className="my-1 border-neutral-200 dark:border-neutral-700" />
-              <button className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200">
+              <div className="h-px bg-neutral-200 dark:bg-neutral-800 mx-2 my-1" />
+              <button className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
                 Copy
               </button>
-              <button className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200">
+              <button className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
                 Cut
               </button>
-              <button className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200">
+              <button className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
                 Rename
               </button>
-              <hr className="my-1 border-neutral-200 dark:border-neutral-700" />
-              <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+              <div className="h-px bg-neutral-200 dark:bg-neutral-800 mx-2 my-1" />
+              <button className="w-full group flex items-center text-left px-4 py-2 text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
                 Delete
               </button>
             </>
           ) : (
             <>
               <button
-                className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200 flex items-center"
+                className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
                 onClick={() => {
                   setCreateDialog({ open: true, type: "file" });
                   closeContextMenu();
                 }}
               >
-                <FilePlus className="w-4 h-4 mr-2" />
+                <FilePlus className="w-4 h-4 mr-2 text-neutral-500 dark:text-neutral-400 group-hover:text-neutral-600 dark:group-hover:text-neutral-300" />
                 Create File
               </button>
               <button
-                className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200 flex items-center"
+                className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
                 onClick={() => {
                   setCreateDialog({ open: true, type: "folder" });
                   closeContextMenu();
                 }}
               >
-                <FolderPlus className="w-4 h-4 mr-2" />
+                <FolderPlus className="w-4 h-4 mr-2 text-neutral-500 dark:text-neutral-400 group-hover:text-neutral-600 dark:group-hover:text-neutral-300" />
                 Create Folder
               </button>
-              <hr className="my-1 border-neutral-200 dark:border-neutral-700" />
-              <button className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200">
+              <div className="h-px bg-neutral-200 dark:bg-neutral-800 mx-2 my-1" />
+              <button className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
                 Paste
               </button>
-              <hr className="my-1 border-neutral-200 dark:border-neutral-700" />
-              <button className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200 flex items-center">
-                <Settings className="w-4 h-4 mr-2" />
+              <div className="h-px bg-neutral-200 dark:bg-neutral-800 mx-2 my-1" />
+              <button className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+                <Settings className="w-4 h-4 mr-2 text-neutral-500 dark:text-neutral-400 group-hover:text-neutral-600 dark:group-hover:text-neutral-300" />
                 Properties
               </button>
             </>

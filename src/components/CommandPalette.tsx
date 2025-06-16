@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useAtom } from "jotai";
 import {
   Search,
@@ -36,6 +36,7 @@ const CommandPalette = () => {
   const [terminalOpen, setTerminalOpen] = useAtom(terminalOpenAtom);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const commandListRef = useRef<HTMLDivElement>(null);
 
   // Dynamically generate navigation paths based on the user's home directory
   const homeBase = useAtom(currentPathAtom)[0].split("/").slice(0, 3).join("/"); // e.g. /home/unnikrishnan
@@ -141,6 +142,24 @@ const CommandPalette = () => {
     setSelectedIndex(0);
   }, [setIsOpen]);
 
+  const scrollSelectedIntoView = useCallback(() => {
+    if (commandListRef.current) {
+      const selectedElement = commandListRef.current.querySelector(
+        `[data-index="${selectedIndex}"]`
+      );
+      if (selectedElement) {
+        selectedElement.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      }
+    }
+  }, [selectedIndex]);
+
+  useEffect(() => {
+    scrollSelectedIntoView();
+  }, [selectedIndex, scrollSelectedIntoView]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
@@ -181,44 +200,47 @@ const CommandPalette = () => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-16 bg-black/50 backdrop-blur-sm"
       onClick={handleClose}
     >
       <div
-        className="w-full max-w-2xl mx-4 bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden"
+        className="w-full max-w-xl mx-4 bg-white dark:bg-neutral-900 rounded-lg shadow-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input */}
-        <div className="flex items-center p-6 border-b border-neutral-200 dark:border-neutral-800">
-          <Search className="w-5 h-5 text-neutral-400 mr-4" />
+        <div className="flex items-center px-4 py-3 border-b border-neutral-200 dark:border-neutral-800">
+          <Search className="w-4 h-4 text-neutral-400 mr-3" />
           <input
             type="text"
             placeholder="Type a command or search..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 bg-transparent outline-none text-neutral-900 dark:text-neutral-100 text-lg placeholder-neutral-400"
+            className="flex-1 bg-transparent outline-none text-neutral-900 dark:text-neutral-100 text-sm placeholder-neutral-400"
             autoFocus
           />
           <div className="flex items-center space-x-2 text-xs text-neutral-400">
-            <kbd className="px-2 py-1 bg-neutral-200 dark:bg-neutral-800 rounded text-xs font-mono">
+            <kbd className="px-1.5 py-0.5 bg-neutral-200 dark:bg-neutral-800 rounded text-xs font-mono">
               Esc
             </kbd>
           </div>
         </div>
 
         {/* Commands List */}
-        <div className="max-h-96 overflow-y-auto">
+        <div
+          ref={commandListRef}
+          className="max-h-72 overflow-y-auto scroll-smooth"
+        >
           {Object.keys(groupedCommands).length === 0 ? (
-            <div className="p-12 text-center text-neutral-500 dark:text-neutral-400">
-              <Command className="w-8 h-8 mx-auto mb-4 opacity-50" />
-              <p className="font-medium">No commands found</p>
-              <p className="text-sm mt-1">Try a different search term</p>
+            <div className="p-8 text-center text-neutral-500 dark:text-neutral-400">
+              <Command className="w-6 h-6 mx-auto mb-3 opacity-50" />
+              <p className="font-medium text-sm">No commands found</p>
+              <p className="text-xs mt-1">Try a different search term</p>
             </div>
           ) : (
-            <div className="py-2">
+            <div className="py-1">
               {Object.entries(groupedCommands).map(([group, commands]) => (
-                <div key={group} className="mb-2 last:mb-0">
-                  <div className="px-6 py-3 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider bg-neutral-100 dark:bg-neutral-800">
+                <div key={group} className="mb-1 last:mb-0">
+                  <div className="px-4 py-1.5 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider bg-neutral-100 dark:bg-neutral-800">
                     {group}
                   </div>
                   {commands.map((command) => {
@@ -226,22 +248,24 @@ const CommandPalette = () => {
                     return (
                       <button
                         key={command.id}
+                        data-index={globalIndex}
                         onClick={() => {
                           command.action();
                           handleClose();
                         }}
                         className={cn(
-                          "w-full flex items-center px-6 py-4 text-left hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors",
-                          globalIndex === selectedIndex &&
-                            "bg-neutral-200 dark:bg-neutral-800 border-r-2 border-neutral-500"
+                          "w-full flex items-center px-4 py-2.5 text-left transition-colors",
+                          globalIndex === selectedIndex
+                            ? "bg-neutral-100 dark:bg-neutral-800 border-r-2 border-neutral-500"
+                            : "hover:bg-neutral-100 dark:hover:bg-neutral-800"
                         )}
                       >
-                        <command.icon className="w-5 h-5 text-neutral-500 dark:text-neutral-400 mr-4" />
+                        <command.icon className="w-4 h-4 text-neutral-500 dark:text-neutral-400 mr-3" />
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
                             {command.title}
                           </div>
-                          <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-1">
+                          <div className="text-xs text-neutral-500 dark:text-neutral-400 truncate mt-0.5">
                             {command.description}
                           </div>
                         </div>
@@ -255,22 +279,22 @@ const CommandPalette = () => {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-4 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900">
-          <div className="flex items-center space-x-4 text-xs text-neutral-500 dark:text-neutral-400">
+        <div className="flex items-center justify-between p-3 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900">
+          <div className="flex items-center space-x-3 text-xs text-neutral-500 dark:text-neutral-400">
             <div className="flex items-center space-x-1">
-              <kbd className="px-2 py-1 bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 rounded text-xs font-mono">
+              <kbd className="px-1.5 py-0.5 bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 rounded text-xs font-mono">
                 ↑↓
               </kbd>
               <span>navigate</span>
             </div>
             <div className="flex items-center space-x-1">
-              <kbd className="px-2 py-1 bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 rounded text-xs font-mono">
+              <kbd className="px-1.5 py-0.5 bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 rounded text-xs font-mono">
                 ↵
               </kbd>
               <span>select</span>
             </div>
           </div>
-          <button className="flex items-center space-x-2 text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
+          <button className="flex items-center space-x-1.5 text-xs text-neutral-600 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
             <Plus className="w-3 h-3" />
             <span>Create Custom Command</span>
           </button>
