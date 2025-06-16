@@ -11,12 +11,20 @@ import {
   Eye,
   EyeOff,
   Terminal,
+  Grid2X2,
+  List,
+  SortAsc,
+  SortDesc,
+  Clock,
 } from "lucide-react";
 import {
   commandPaletteOpenAtom,
   currentPathAtom,
   showHiddenFilesAtom,
   terminalOpenAtom,
+  fileViewModeAtom,
+  fileSortModeAtom,
+  fileSortOrderAtom,
 } from "@/store/atoms";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +42,9 @@ const CommandPalette = () => {
   const [, setCurrentPath] = useAtom(currentPathAtom);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(showHiddenFilesAtom);
   const [terminalOpen, setTerminalOpen] = useAtom(terminalOpenAtom);
+  const [viewMode, setViewMode] = useAtom(fileViewModeAtom);
+  const [sortMode, setSortMode] = useAtom(fileSortModeAtom);
+  const [sortOrder, setSortOrder] = useAtom(fileSortOrderAtom);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const commandListRef = useRef<HTMLDivElement>(null);
@@ -42,6 +53,80 @@ const CommandPalette = () => {
   const homeBase = useAtom(currentPathAtom)[0].split("/").slice(0, 3).join("/"); // e.g. /home/unnikrishnan
 
   const commands: Command[] = [
+    {
+      id: "toggle-view",
+      title:
+        viewMode === "grid" ? "Switch to List View" : "Switch to Grid View",
+      description:
+        viewMode === "grid"
+          ? "Display files in a list layout"
+          : "Display files in a grid layout",
+      icon: viewMode === "grid" ? List : Grid2X2,
+      action: () => setViewMode(viewMode === "grid" ? "list" : "grid"),
+      group: "View",
+    },
+    {
+      id: "sort-name",
+      title: "Sort by Name",
+      description: `Sort files alphabetically${
+        sortMode === "name"
+          ? ` (${sortOrder === "asc" ? "A to Z" : "Z to A"})`
+          : ""
+      }`,
+      icon: SortAsc,
+      action: () => {
+        setSortMode("name");
+        if (sortMode === "name") {
+          setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+        }
+      },
+      group: "Sort",
+    },
+    {
+      id: "sort-size",
+      title: "Sort by Size",
+      description: `Sort files by size${
+        sortMode === "size"
+          ? ` (${sortOrder === "asc" ? "Smallest first" : "Largest first"})`
+          : ""
+      }`,
+      icon: SortAsc,
+      action: () => {
+        setSortMode("size");
+        if (sortMode === "size") {
+          setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+        }
+      },
+      group: "Sort",
+    },
+    {
+      id: "sort-modified",
+      title: "Sort by Modified Date",
+      description: `Sort files by last modified${
+        sortMode === "modified"
+          ? ` (${sortOrder === "asc" ? "Oldest first" : "Newest first"})`
+          : ""
+      }`,
+      icon: Clock,
+      action: () => {
+        setSortMode("modified");
+        if (sortMode === "modified") {
+          setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+        }
+      },
+      group: "Sort",
+    },
+    {
+      id: "toggle-sort-order",
+      title: `Sort Order: ${sortOrder === "asc" ? "Ascending" : "Descending"}`,
+      description:
+        sortOrder === "asc"
+          ? "Change to descending order"
+          : "Change to ascending order",
+      icon: sortOrder === "asc" ? SortAsc : SortDesc,
+      action: () => setSortOrder(sortOrder === "asc" ? "desc" : "asc"),
+      group: "Sort",
+    },
     {
       id: "toggle-terminal",
       title: terminalOpen ? "Close Terminal" : "Open Terminal",
