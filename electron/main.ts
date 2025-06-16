@@ -1,10 +1,10 @@
 import { app, BrowserWindow, ipcMain } from "electron";
-import { createRequire } from "node:module";
+// import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import fs from "fs";
 
-const require = createRequire(import.meta.url);
+// const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // The built directory structure
@@ -35,6 +35,9 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
     },
+    frame: false, // Remove default OS window frame
+    titleBarStyle: "hidden", // Hide the default title bar
+    transparent: true, // Make the window transparent
   });
 
   // Test active push message to Renderer-process.
@@ -69,9 +72,26 @@ ipcMain.handle("list-directory", async (event, dirPath: string) => {
       })
     );
     return { success: true, files: fileStats };
-  } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
     return { success: false, error: error.message };
   }
+});
+
+ipcMain.on("window-minimize", () => {
+  if (win) win.minimize();
+});
+ipcMain.on("window-maximize", () => {
+  if (win) {
+    if (win.isMaximized()) {
+      win.unmaximize();
+    } else {
+      win.maximize();
+    }
+  }
+});
+ipcMain.on("window-close", () => {
+  if (win) win.close();
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common

@@ -1,9 +1,7 @@
 import { ipcMain, app, BrowserWindow } from "electron";
-import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import fs from "fs";
-createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
@@ -16,7 +14,13 @@ function createWindow() {
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs")
-    }
+    },
+    frame: false,
+    // Remove default OS window frame
+    titleBarStyle: "hidden",
+    // Hide the default title bar
+    transparent: true
+    // Make the window transparent
   });
   win.webContents.on("did-finish-load", () => {
     win == null ? void 0 : win.webContents.send("main-process-message", (/* @__PURE__ */ new Date()).toLocaleString());
@@ -49,6 +53,21 @@ ipcMain.handle("list-directory", async (event, dirPath) => {
   } catch (error) {
     return { success: false, error: error.message };
   }
+});
+ipcMain.on("window-minimize", () => {
+  if (win) win.minimize();
+});
+ipcMain.on("window-maximize", () => {
+  if (win) {
+    if (win.isMaximized()) {
+      win.unmaximize();
+    } else {
+      win.maximize();
+    }
+  }
+});
+ipcMain.on("window-close", () => {
+  if (win) win.close();
 });
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {

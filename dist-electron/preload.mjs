@@ -24,5 +24,8 @@ electron.contextBridge.exposeInMainWorld("ipcRenderer", {
   // ...
 });
 electron.contextBridge.exposeInMainWorld("electronAPI", {
-  listDirectory: (dirPath) => electron.ipcRenderer.invoke("list-directory", dirPath)
+  listDirectory: (dirPath) => electron.ipcRenderer.invoke("list-directory", dirPath),
+  minimize: () => electron.ipcRenderer.send("window-minimize"),
+  maximize: () => electron.ipcRenderer.send("window-maximize"),
+  close: () => electron.ipcRenderer.send("window-close")
 });

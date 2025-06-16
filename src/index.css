@@ -127,6 +127,9 @@
   body {
     @apply bg-background text-foreground;
   }
+  #root {
+    @apply rounded-lg overflow-hidden;
+  }
 }
 
 /* Custom Scrollbar Styles for Light/Dark Theme */
@@ -161,4 +164,12 @@
 }
 .dark * {
   scrollbar-color: hsl(var(--sidebar-border) / 0.5) transparent;
+}
+
+/* Electron draggable region helpers */
+.drag {
+  -webkit-app-region: drag;
+}
+.no-drag {
+  -webkit-app-region: no-drag;
 }
