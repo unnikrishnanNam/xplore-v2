@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAtom } from "jotai";
 import {
   Search,
@@ -16,19 +16,19 @@ interface Command {
   id: string;
   title: string;
   description: string;
-  icon: any;
+  icon: React.ElementType;
   action: () => void;
   group: string;
 }
 
 const CommandPalette = () => {
   const [isOpen, setIsOpen] = useAtom(commandPaletteOpenAtom);
-  const [currentPath, setCurrentPath] = useAtom(currentPathAtom);
+  const [, setCurrentPath] = useAtom(currentPathAtom); // Remove unused currentPath
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Dynamically generate navigation paths based on the user's home directory
-  const homeBase = currentPath.split("/").slice(0, 3).join("/"); // e.g. /home/unnikrishnan
+  const homeBase = useAtom(currentPathAtom)[0].split("/").slice(0, 3).join("/"); // e.g. /home/unnikrishnan
 
   const commands: Command[] = [
     {
@@ -105,16 +105,15 @@ const CommandPalette = () => {
 
   const allFilteredCommands = Object.values(groupedCommands).flat();
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsOpen(false);
     setQuery("");
     setSelectedIndex(0);
-  };
+  }, [setIsOpen]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
-
       switch (e.key) {
         case "ArrowDown":
           e.preventDefault();
@@ -140,10 +139,9 @@ const CommandPalette = () => {
           break;
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, selectedIndex, allFilteredCommands, setIsOpen]);
+  }, [isOpen, selectedIndex, allFilteredCommands, setIsOpen, handleClose]);
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -193,7 +191,7 @@ const CommandPalette = () => {
                   <div className="px-6 py-3 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider bg-neutral-100 dark:bg-neutral-800">
                     {group}
                   </div>
-                  {commands.map((command, index) => {
+                  {commands.map((command) => {
                     const globalIndex = allFilteredCommands.indexOf(command);
                     return (
                       <button

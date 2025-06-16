@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { useAtom } from "jotai";
 import {
   Home,
@@ -41,6 +41,8 @@ const Toolbar = () => {
   const [sortMode, setSortMode] = useAtom(fileSortModeAtom);
   const [sortOrder, setSortOrder] = useAtom(fileSortOrderAtom);
 
+  const breadcrumbRef = useRef<HTMLDivElement>(null);
+
   const getBreadcrumbItems = () => {
     const parts = currentPath.split("/").filter(Boolean);
     return [
@@ -60,14 +62,21 @@ const Toolbar = () => {
   const toggleSortOrder = () =>
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
 
+  useEffect(() => {
+    // Scroll to the last breadcrumb item whenever the path changes
+    if (breadcrumbRef.current) {
+      breadcrumbRef.current.scrollLeft = breadcrumbRef.current.scrollWidth;
+    }
+  }, [currentPath]);
+
   return (
     <div className="bg-neutral-100 dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800 px-4 py-2">
       <div className="flex items-center justify-between">
         {/* Left side: Sidebar toggle + Breadcrumb */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 min-w-0">
           <button
             onClick={toggleSidebar}
-            className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+            className="flex-shrink-0 p-2 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-lg transition-colors"
             title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {collapsed ? (
@@ -77,26 +86,42 @@ const Toolbar = () => {
             )}
           </button>
 
-          <nav className="flex items-center space-x-1 text-sm">
-            <Home className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
-            {getBreadcrumbItems().map((item, index) => (
-              <React.Fragment key={item.path}>
-                <ChevronRight className="w-3 h-3 text-neutral-400" />
-                <button
-                  className={cn(
-                    "text-xs transition-colors hover:text-neutral-900 dark:hover:text-neutral-100",
-                    index === getBreadcrumbItems().length - 1
-                      ? "text-neutral-900 dark:text-neutral-100 font-medium"
-                      : "text-neutral-600 dark:text-neutral-300"
-                  )}
-                  onClick={() => setCurrentPath(item.path)}
-                  disabled={index === getBreadcrumbItems().length - 1}
-                >
-                  {item.name}
-                </button>
-              </React.Fragment>
-            ))}
-          </nav>
+          {/* Breadcrumb wrapper with fade effect */}
+          <div className="relative flex-1 min-w-0">
+            <div className="absolute left-0 top-0 bottom-0 z-10 w-8 pointer-events-none bg-gradient-to-r from-neutral-100 dark:from-neutral-950 to-transparent" />
+            <div className="absolute right-0 top-0 bottom-0 z-10 w-8 pointer-events-none bg-gradient-to-l from-neutral-100 dark:from-neutral-950 to-transparent" />
+
+            <nav
+              ref={breadcrumbRef}
+              className="flex items-center space-x-1 text-sm overflow-x-auto max-w-full no-scrollbar px-8"
+              style={{
+                scrollBehavior: "smooth",
+                msOverflowStyle: "none",
+                scrollbarWidth: "none",
+              }}
+            >
+              <div className="flex-shrink-0">
+                <Home className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
+              </div>
+              {getBreadcrumbItems().map((item, index) => (
+                <React.Fragment key={item.path}>
+                  <ChevronRight className="flex-shrink-0 w-3 h-3 text-neutral-400" />
+                  <button
+                    className={cn(
+                      "flex-shrink-0 text-xs transition-colors hover:text-neutral-900 dark:hover:text-neutral-100 whitespace-nowrap px-0.5",
+                      index === getBreadcrumbItems().length - 1
+                        ? "text-neutral-900 dark:text-neutral-100 font-medium"
+                        : "text-neutral-600 dark:text-neutral-300"
+                    )}
+                    onClick={() => setCurrentPath(item.path)}
+                    disabled={index === getBreadcrumbItems().length - 1}
+                  >
+                    {item.name}
+                  </button>
+                </React.Fragment>
+              ))}
+            </nav>
+          </div>
         </div>
 
         {/* Center: View and Sort controls */}
