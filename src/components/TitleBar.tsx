@@ -70,10 +70,10 @@ const TitleBar = () => {
         <Square className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
       </button>
       <button
-        className="p-3 hover:bg-red-500 hover:text-white transition-colors"
+        className="p-3 hover:bg-red-500 hover:text-white transition-colors text-neutral-600"
         onClick={handleClose}
       >
-        <X className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
+        <X className="w-4 h-4 dark:text-neutral-300" />
       </button>
     </div>
   );
@@ -82,8 +82,8 @@ const TitleBar = () => {
     <div className="h-12 bg-white dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between select-none drag">
       {/* Only the control buttons should not be draggable */}
       <div className="no-drag">{os === "macos" ? <MacOSControls /> : null}</div>
-      <div className="flex-1 text-center">
-        <h1 className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
+      <div className="flex-1 text-left px-6">
+        <h1 className="text-lg font-bold text-neutral-700 dark:text-neutral-200">
           Xplore
         </h1>
       </div>
