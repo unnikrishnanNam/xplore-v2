@@ -128,3 +128,37 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom Scrollbar Styles for Light/Dark Theme */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background: hsl(var(--border) / 0.5);
+  transition: background 0.2s;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--border) / 0.8);
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border) / 0.5) transparent;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: hsl(var(--sidebar-border) / 0.5);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--sidebar-border) / 0.8);
+}
+.dark * {
+  scrollbar-color: hsl(var(--sidebar-border) / 0.5) transparent;
+}
