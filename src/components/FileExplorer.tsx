@@ -8,6 +8,7 @@ import {
   fileViewModeAtom,
   fileSortModeAtom,
   fileSortOrderAtom,
+  showHiddenFilesAtom,
 } from "@/store/atoms";
 import { cn } from "@/lib/utils";
 import Toolbar from "./Toolbar";
@@ -22,6 +23,7 @@ const FileExplorer = () => {
   const [viewMode] = useAtom(fileViewModeAtom);
   const [sortMode] = useAtom(fileSortModeAtom);
   const [sortOrder] = useAtom(fileSortOrderAtom);
+  const [showHiddenFiles] = useAtom(showHiddenFilesAtom);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -33,7 +35,15 @@ const FileExplorer = () => {
   } | null>(null);
 
   const sortedFiles = useMemo(() => {
-    const sorted = [...files].sort((a, b) => {
+    // Filter out hidden files if showHiddenFiles is false
+    let filteredFiles = [...files];
+    if (!showHiddenFiles) {
+      filteredFiles = filteredFiles.filter(
+        (file) => !file.name.startsWith(".")
+      );
+    }
+
+    const sorted = filteredFiles.sort((a, b) => {
       let comparison = 0;
 
       if (sortMode === "name") {
@@ -56,7 +66,7 @@ const FileExplorer = () => {
       if (a.type === "file" && b.type === "folder") return 1;
       return 0;
     });
-  }, [files, sortMode, sortOrder]);
+  }, [files, sortMode, sortOrder, showHiddenFiles]);
 
   const handleFileClick = (fileId: string, event: React.MouseEvent) => {
     // Close any open context menu

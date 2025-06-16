@@ -26,6 +26,7 @@ export const sidebarCollapsedAtom = atom(false);
 export const terminalOpenAtom = atom(false);
 export const terminalMinimizedAtom = atom(false);
 export const commandPaletteOpenAtom = atom(false);
+export const showHiddenFilesAtom = atom(false);
 
 // File system atoms
 // Synchronous fallback for initial render

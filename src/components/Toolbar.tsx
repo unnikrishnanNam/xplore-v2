@@ -12,6 +12,8 @@ import {
   Grid2X2,
   SortAsc,
   SortDesc,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   sidebarCollapsedAtom,
@@ -21,6 +23,7 @@ import {
   fileViewModeAtom,
   fileSortModeAtom,
   fileSortOrderAtom,
+  showHiddenFilesAtom,
 } from "@/store/atoms";
 import { cn } from "@/lib/utils";
 import {
@@ -40,6 +43,7 @@ const Toolbar = () => {
   const [viewMode, setViewMode] = useAtom(fileViewModeAtom);
   const [sortMode, setSortMode] = useAtom(fileSortModeAtom);
   const [sortOrder, setSortOrder] = useAtom(fileSortOrderAtom);
+  const [showHiddenFiles, setShowHiddenFiles] = useAtom(showHiddenFilesAtom);
 
   const breadcrumbRef = useRef<HTMLDivElement>(null);
 
@@ -138,6 +142,23 @@ const Toolbar = () => {
               <Grid2X2 className="w-4 h-4" />
             ) : (
               <List className="w-4 h-4" />
+            )}
+          </button>
+
+          <button
+            onClick={() => setShowHiddenFiles(!showHiddenFiles)}
+            className={cn(
+              "p-2 rounded-lg transition-colors",
+              showHiddenFiles
+                ? "bg-neutral-200 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+                : "hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
+            )}
+            title={`${showHiddenFiles ? "Hide" : "Show"} hidden files`}
+          >
+            {showHiddenFiles ? (
+              <Eye className="w-4 h-4" />
+            ) : (
+              <EyeOff className="w-4 h-4" />
             )}
           </button>
 
