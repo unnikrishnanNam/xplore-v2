@@ -10,11 +10,13 @@ import {
   Cloud,
   Eye,
   EyeOff,
+  Terminal,
 } from "lucide-react";
 import {
   commandPaletteOpenAtom,
   currentPathAtom,
   showHiddenFilesAtom,
+  terminalOpenAtom,
 } from "@/store/atoms";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +33,7 @@ const CommandPalette = () => {
   const [isOpen, setIsOpen] = useAtom(commandPaletteOpenAtom);
   const [, setCurrentPath] = useAtom(currentPathAtom);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(showHiddenFilesAtom);
+  const [terminalOpen, setTerminalOpen] = useAtom(terminalOpenAtom);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -38,6 +41,16 @@ const CommandPalette = () => {
   const homeBase = useAtom(currentPathAtom)[0].split("/").slice(0, 3).join("/"); // e.g. /home/unnikrishnan
 
   const commands: Command[] = [
+    {
+      id: "toggle-terminal",
+      title: terminalOpen ? "Close Terminal" : "Open Terminal",
+      description: terminalOpen
+        ? "Hide the terminal panel"
+        : "Show the terminal panel",
+      icon: Terminal,
+      action: () => setTerminalOpen(!terminalOpen),
+      group: "View",
+    },
     {
       id: "toggle-hidden-files",
       title: showHiddenFiles ? "Hide Hidden Files" : "Show Hidden Files",
