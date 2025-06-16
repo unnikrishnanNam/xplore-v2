@@ -1,43 +1,59 @@
-import React, { useState, useMemo } from 'react';
-import { useAtom } from 'jotai';
-import { FilePlus, FolderPlus, Settings } from 'lucide-react';
-import { filesAtom, selectedFilesAtom, currentPathAtom, fileViewModeAtom, fileSortModeAtom, fileSortOrderAtom } from '@/store/atoms';
-import { cn } from '@/lib/utils';
-import Toolbar from './Toolbar';
-import { FilledFile, FilledFolder } from './Icons';
-import CreateFileDialog from './CreateFileDialog';
+import React, { useState, useMemo, useEffect } from "react";
+import { useAtom } from "jotai";
+import { FilePlus, FolderPlus, Settings } from "lucide-react";
+import {
+  filesAtom,
+  selectedFilesAtom,
+  currentPathAtom,
+  fileViewModeAtom,
+  fileSortModeAtom,
+  fileSortOrderAtom,
+} from "@/store/atoms";
+import { cn } from "@/lib/utils";
+import Toolbar from "./Toolbar";
+import { FilledFile, FilledFolder } from "./Icons";
+import CreateFileDialog from "./CreateFileDialog";
+import type { FileItem } from "@/store/atoms";
 
 const FileExplorer = () => {
   const [files, setFiles] = useAtom(filesAtom);
   const [selectedFiles, setSelectedFiles] = useAtom(selectedFilesAtom);
-  const [currentPath] = useAtom(currentPathAtom);
+  const [currentPath, setCurrentPath] = useAtom(currentPathAtom);
   const [viewMode] = useAtom(fileViewModeAtom);
   const [sortMode] = useAtom(fileSortModeAtom);
   const [sortOrder] = useAtom(fileSortOrderAtom);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; fileId?: string } | null>(null);
-  const [createDialog, setCreateDialog] = useState<{ open: boolean; type: 'file' | 'folder' } | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    fileId?: string;
+  } | null>(null);
+  const [createDialog, setCreateDialog] = useState<{
+    open: boolean;
+    type: "file" | "folder";
+  } | null>(null);
 
   const sortedFiles = useMemo(() => {
     const sorted = [...files].sort((a, b) => {
       let comparison = 0;
-      
-      if (sortMode === 'name') {
+
+      if (sortMode === "name") {
         comparison = a.name.localeCompare(b.name);
-      } else if (sortMode === 'size') {
+      } else if (sortMode === "size") {
         const aSize = a.size || 0;
         const bSize = b.size || 0;
         comparison = aSize - bSize;
-      } else if (sortMode === 'modified') {
-        comparison = new Date(a.modified).getTime() - new Date(b.modified).getTime();
+      } else if (sortMode === "modified") {
+        comparison =
+          new Date(a.modified).getTime() - new Date(b.modified).getTime();
       }
-      
-      return sortOrder === 'asc' ? comparison : -comparison;
+
+      return sortOrder === "asc" ? comparison : -comparison;
     });
-    
+
     // Always put folders first
     return sorted.sort((a, b) => {
-      if (a.type === 'folder' && b.type === 'file') return -1;
-      if (a.type === 'file' && b.type === 'folder') return 1;
+      if (a.type === "folder" && b.type === "file") return -1;
+      if (a.type === "file" && b.type === "folder") return 1;
       return 0;
     });
   }, [files, sortMode, sortOrder]);
@@ -45,11 +61,11 @@ const FileExplorer = () => {
   const handleFileClick = (fileId: string, event: React.MouseEvent) => {
     // Close any open context menu
     setContextMenu(null);
-    
+
     if (event.ctrlKey || event.metaKey) {
-      setSelectedFiles(prev => 
-        prev.includes(fileId) 
-          ? prev.filter(id => id !== fileId)
+      setSelectedFiles((prev) =>
+        prev.includes(fileId)
+          ? prev.filter((id) => id !== fileId)
           : [...prev, fileId]
       );
     } else {
@@ -57,29 +73,30 @@ const FileExplorer = () => {
     }
   };
 
-  const handleFileDoubleClick = (file: any) => {
-    if (file.type === 'folder') {
-      console.log('Opening folder:', file.name);
+  const handleFileDoubleClick = (file: FileItem) => {
+    if (file.type === "folder") {
+      setCurrentPath(file.path);
     } else {
-      console.log('Opening file:', file.name);
+      // Optionally: open file with default app or preview
+      console.log("Opening file:", file.name);
     }
   };
 
   const handleRightClick = (event: React.MouseEvent, fileId?: string) => {
     event.preventDefault();
     event.stopPropagation();
-    
-    console.log('Right click detected:', { fileId, hasFileId: !!fileId });
-    
+
+    console.log("Right click detected:", { fileId, hasFileId: !!fileId });
+
     // Select the file if it's not already selected and it's a file/folder right-click
     if (fileId && !selectedFiles.includes(fileId)) {
       setSelectedFiles([fileId]);
     }
-    
+
     setContextMenu({
       x: event.clientX,
       y: event.clientY,
-      fileId: fileId // This will be undefined for empty space clicks
+      fileId: fileId, // This will be undefined for empty space clicks
     });
   };
 
@@ -94,23 +111,23 @@ const FileExplorer = () => {
     const newFile = {
       id: Date.now().toString(),
       name,
-      type: 'file' as const,
+      type: "file" as const,
       size: 0,
       modified: new Date(),
-      path: `${currentPath}/${name}`
+      path: `${currentPath}/${name}`,
     };
-    setFiles(prev => [...prev, newFile]);
+    setFiles((prev) => [...prev, newFile]);
   };
 
   const handleCreateFolder = (name: string) => {
     const newFolder = {
       id: Date.now().toString(),
       name,
-      type: 'folder' as const,
+      type: "folder" as const,
       modified: new Date(),
-      path: `${currentPath}/${name}`
+      path: `${currentPath}/${name}`,
     };
-    setFiles(prev => [...prev, newFolder]);
+    setFiles((prev) => [...prev, newFolder]);
   };
 
   const closeContextMenu = () => {
@@ -118,26 +135,26 @@ const FileExplorer = () => {
   };
 
   const formatFileSize = (bytes?: number) => {
-    if (!bytes) return '';
-    const units = ['B', 'KB', 'MB', 'GB'];
+    if (!bytes) return "";
+    const units = ["B", "KB", "MB", "GB"];
     let size = bytes;
     let unitIndex = 0;
-    
+
     while (size >= 1024 && unitIndex < units.length - 1) {
       size /= 1024;
       unitIndex++;
     }
-    
+
     return `${size.toFixed(1)} ${units[unitIndex]}`;
   };
 
   const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     }).format(date);
   };
 
@@ -145,12 +162,15 @@ const FileExplorer = () => {
     if (!contextMenu) return null;
 
     const isFileOrFolder = !!contextMenu.fileId;
-    console.log('Rendering context menu:', { isFileOrFolder, fileId: contextMenu.fileId });
+    console.log("Rendering context menu:", {
+      isFileOrFolder,
+      fileId: contextMenu.fileId,
+    });
 
     return (
       <>
         <div className="fixed inset-0 z-40" onClick={closeContextMenu} />
-        <div 
+        <div
           className="fixed z-50 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg py-2 min-w-48"
           style={{ left: contextMenu.x, top: contextMenu.y }}
         >
@@ -179,20 +199,20 @@ const FileExplorer = () => {
             </>
           ) : (
             <>
-              <button 
+              <button
                 className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200 flex items-center"
                 onClick={() => {
-                  setCreateDialog({ open: true, type: 'file' });
+                  setCreateDialog({ open: true, type: "file" });
                   closeContextMenu();
                 }}
               >
                 <FilePlus className="w-4 h-4 mr-2" />
                 Create File
               </button>
-              <button 
+              <button
                 className="w-full text-left px-4 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200 flex items-center"
                 onClick={() => {
-                  setCreateDialog({ open: true, type: 'folder' });
+                  setCreateDialog({ open: true, type: "folder" });
                   closeContextMenu();
                 }}
               >
@@ -215,13 +235,43 @@ const FileExplorer = () => {
     );
   };
 
-  if (viewMode === 'grid') {
+  // Fetch directory contents when currentPath changes
+  // @ts-expect-error: electronAPI is injected by Electron preload and not typed in TS
+  const electronAPI = window.electronAPI as {
+    listDirectory?: (
+      dirPath: string
+    ) => Promise<{ success: boolean; files: FileItem[]; error?: string }>;
+  };
+  useEffect(() => {
+    // Only fetch from electronAPI if available (i.e., running in Electron)
+    if (
+      typeof window !== "undefined" &&
+      "electronAPI" in window &&
+      electronAPI &&
+      electronAPI.listDirectory
+    ) {
+      electronAPI
+        .listDirectory(currentPath)
+        .then(
+          (result: { success: boolean; files: FileItem[]; error?: string }) => {
+            if (result.success) {
+              setFiles(result.files);
+            } else {
+              setFiles([]);
+            }
+          }
+        );
+    }
+    // else: fallback to mock data (already in filesAtom)
+  }, [currentPath, setFiles, electronAPI]);
+
+  if (viewMode === "grid") {
     return (
       <div className="flex-1 bg-white dark:bg-neutral-950 overflow-hidden flex flex-col">
         <Toolbar />
-        
-        <div 
-          className="overflow-auto flex-1 p-4" 
+
+        <div
+          className="overflow-auto flex-1 p-4"
           onClick={handleEmptyAreaClick}
           onContextMenu={(e) => handleRightClick(e)}
         >
@@ -231,23 +281,27 @@ const FileExplorer = () => {
                 key={file.id}
                 className={cn(
                   "flex flex-col items-center p-3 rounded-lg cursor-pointer transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-900",
-                  selectedFiles.includes(file.id) && "bg-neutral-200 dark:bg-neutral-800"
+                  selectedFiles.includes(file.id) &&
+                    "bg-neutral-200 dark:bg-neutral-800"
                 )}
                 onClick={(e) => handleFileClick(file.id, e)}
                 onDoubleClick={() => handleFileDoubleClick(file)}
                 onContextMenu={(e) => handleRightClick(e, file.id)}
               >
                 <div className="mb-2">
-                  {file.type === 'folder' ? (
+                  {file.type === "folder" ? (
                     <FilledFolder className="w-12 h-12" color="text-blue-500" />
                   ) : (
-                    <FilledFile className="w-12 h-12" color="text-neutral-500" />
+                    <FilledFile
+                      className="w-12 h-12"
+                      color="text-neutral-500"
+                    />
                   )}
                 </div>
                 <span className="text-sm text-neutral-900 dark:text-neutral-100 text-center truncate w-full">
                   {file.name}
                 </span>
-                {file.type === 'file' && (
+                {file.type === "file" && (
                   <span className="text-xs text-neutral-500 dark:text-neutral-400">
                     {formatFileSize(file.size)}
                   </span>
@@ -258,12 +312,16 @@ const FileExplorer = () => {
         </div>
 
         <ContextMenu />
-        
+
         {createDialog && (
           <CreateFileDialog
             open={createDialog.open}
             onOpenChange={(open) => setCreateDialog(open ? createDialog : null)}
-            onConfirm={createDialog.type === 'file' ? handleCreateFile : handleCreateFolder}
+            onConfirm={
+              createDialog.type === "file"
+                ? handleCreateFile
+                : handleCreateFolder
+            }
             type={createDialog.type}
           />
         )}
@@ -275,8 +333,8 @@ const FileExplorer = () => {
     <div className="flex-1 bg-white dark:bg-neutral-950 overflow-hidden flex flex-col">
       <Toolbar />
 
-      <div 
-        className="overflow-auto flex-1" 
+      <div
+        className="overflow-auto flex-1"
         onClick={handleEmptyAreaClick}
         onContextMenu={(e) => handleRightClick(e)}
       >
@@ -300,7 +358,8 @@ const FileExplorer = () => {
                 key={file.id}
                 className={cn(
                   "hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer transition-colors",
-                  selectedFiles.includes(file.id) && "bg-neutral-200 dark:bg-neutral-800"
+                  selectedFiles.includes(file.id) &&
+                    "bg-neutral-200 dark:bg-neutral-800"
                 )}
                 onClick={(e) => handleFileClick(file.id, e)}
                 onDoubleClick={() => handleFileDoubleClick(file)}
@@ -308,10 +367,13 @@ const FileExplorer = () => {
               >
                 <td className="py-3 px-4">
                   <div className="flex items-center space-x-3">
-                    {file.type === 'folder' ? (
+                    {file.type === "folder" ? (
                       <FilledFolder className="w-4 h-4" color="text-blue-500" />
                     ) : (
-                      <FilledFile className="w-4 h-4" color="text-neutral-500" />
+                      <FilledFile
+                        className="w-4 h-4"
+                        color="text-neutral-500"
+                      />
                     )}
                     <span className="text-sm text-neutral-900 dark:text-neutral-100 truncate">
                       {file.name}
@@ -319,7 +381,7 @@ const FileExplorer = () => {
                   </div>
                 </td>
                 <td className="py-3 px-4 text-sm text-neutral-500 dark:text-neutral-400">
-                  {file.type === 'file' ? formatFileSize(file.size) : '—'}
+                  {file.type === "file" ? formatFileSize(file.size) : "—"}
                 </td>
                 <td className="py-3 px-4 text-sm text-neutral-500 dark:text-neutral-400">
                   {formatDate(file.modified)}
@@ -331,12 +393,14 @@ const FileExplorer = () => {
       </div>
 
       <ContextMenu />
-      
+
       {createDialog && (
         <CreateFileDialog
           open={createDialog.open}
           onOpenChange={(open) => setCreateDialog(open ? createDialog : null)}
-          onConfirm={createDialog.type === 'file' ? handleCreateFile : handleCreateFolder}
+          onConfirm={
+            createDialog.type === "file" ? handleCreateFile : handleCreateFolder
+          }
           type={createDialog.type}
         />
       )}
