@@ -1,4 +1,5 @@
 import { ipcRenderer, contextBridge } from "electron";
+import os from "os";
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld("ipcRenderer", {
@@ -31,4 +32,5 @@ contextBridge.exposeInMainWorld("electronAPI", {
   minimize: () => ipcRenderer.send("window-minimize"),
   maximize: () => ipcRenderer.send("window-maximize"),
   close: () => ipcRenderer.send("window-close"),
+  getHomeDir: () => ipcRenderer.invoke("get-home-dir"),
 });

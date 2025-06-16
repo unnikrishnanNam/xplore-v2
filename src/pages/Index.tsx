@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import TitleBar from "../components/TitleBar";
 import Sidebar from "../components/Sidebar";
 import FileExplorer from "../components/FileExplorer";
@@ -9,6 +9,7 @@ import {
   terminalOpenAtom,
   commandPaletteOpenAtom,
   themeAtom,
+  updateHomeAtoms,
 } from "../store/atoms";
 import {
   ResizablePanelGroup,
@@ -20,6 +21,7 @@ const Index = () => {
   const [terminalOpen, setTerminalOpen] = useAtom(terminalOpenAtom);
   const [, setCommandPaletteOpen] = useAtom(commandPaletteOpenAtom);
   const [theme] = useAtom(themeAtom);
+  const setUpdateHome = useSetAtom(updateHomeAtoms);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -43,6 +45,10 @@ const Index = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [setTerminalOpen, setCommandPaletteOpen]);
+
+  useEffect(() => {
+    setUpdateHome();
+  }, [setUpdateHome]);
 
   return (
     <div className="h-screen bg-gradient-to-br from-neutral-50 to-white dark:from-black dark:to-neutral-950 flex flex-col overflow-hidden">

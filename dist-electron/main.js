@@ -2,6 +2,7 @@ import { ipcMain, app, BrowserWindow } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import fs from "fs";
+import os from "os";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 process.env.APP_ROOT = path.join(__dirname, "..");
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
@@ -53,6 +54,9 @@ ipcMain.handle("list-directory", async (event, dirPath) => {
   } catch (error) {
     return { success: false, error: error.message };
   }
+});
+ipcMain.handle("get-home-dir", () => {
+  return os.homedir();
 });
 ipcMain.on("window-minimize", () => {
   if (win) win.minimize();

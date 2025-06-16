@@ -3,6 +3,7 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import fs from "fs";
+import os from "os";
 
 // const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -76,6 +77,10 @@ ipcMain.handle("list-directory", async (event, dirPath: string) => {
   } catch (error: any) {
     return { success: false, error: error.message };
   }
+});
+
+ipcMain.handle("get-home-dir", () => {
+  return os.homedir();
 });
 
 ipcMain.on("window-minimize", () => {

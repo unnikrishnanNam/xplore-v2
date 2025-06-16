@@ -27,5 +27,6 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
   listDirectory: (dirPath) => electron.ipcRenderer.invoke("list-directory", dirPath),
   minimize: () => electron.ipcRenderer.send("window-minimize"),
   maximize: () => electron.ipcRenderer.send("window-maximize"),
-  close: () => electron.ipcRenderer.send("window-close")
+  close: () => electron.ipcRenderer.send("window-close"),
+  getHomeDir: () => electron.ipcRenderer.invoke("get-home-dir")
 });

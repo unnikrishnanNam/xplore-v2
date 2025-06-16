@@ -17,6 +17,7 @@ import {
   cloudProvidersAtom,
 } from "@/store/atoms";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 const Sidebar = () => {
   const [collapsed] = useAtom(sidebarCollapsedAtom);
@@ -24,35 +25,37 @@ const Sidebar = () => {
   const [pinnedFolders] = useAtom(pinnedFoldersAtom);
   const [cloudProviders] = useAtom(cloudProvidersAtom);
 
+  // Dynamically generate quick access items based on the user's home directory
+  const homeBase = currentPath.split("/").slice(0, 3).join("/"); // e.g. /home/unnikrishnan
   const quickAccessItems = [
-    { name: "Home", path: "/home/user", icon: Home, color: "text-blue-500" },
+    { name: "Home", path: homeBase, icon: Home, color: "text-blue-500" },
     {
       name: "Desktop",
-      path: "/home/user/Desktop",
+      path: `${homeBase}/Desktop`,
       icon: Monitor,
       color: "text-purple-500",
     },
     {
       name: "Documents",
-      path: "/home/user/Documents",
+      path: `${homeBase}/Documents`,
       icon: FileText,
       color: "text-green-500",
     },
     {
       name: "Downloads",
-      path: "/home/user/Downloads",
+      path: `${homeBase}/Downloads`,
       icon: Download,
       color: "text-orange-500",
     },
     {
       name: "Pictures",
-      path: "/home/user/Pictures",
+      path: `${homeBase}/Pictures`,
       icon: Image,
       color: "text-rose-500",
     },
     {
       name: "Videos",
-      path: "/home/user/Videos",
+      path: `${homeBase}/Videos`,
       icon: Video,
       color: "text-indigo-500",
     },
@@ -106,6 +109,10 @@ const Sidebar = () => {
     </button>
   );
 
+  const resolvedPinnedFolders = pinnedFolders.map((folder) =>
+    folder.replace("/home/user", homeBase)
+  );
+
   return (
     <div
       className={cn(
@@ -143,7 +150,7 @@ const Sidebar = () => {
             </h3>
           )}
           <div className="space-y-1">
-            {pinnedFolders.map((folder, index) => (
+            {resolvedPinnedFolders.map((folder, index) => (
               <SidebarButton
                 key={index}
                 icon={Star}
