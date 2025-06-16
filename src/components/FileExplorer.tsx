@@ -246,7 +246,6 @@ const FileExplorer = () => {
   };
 
   // Fetch directory contents when currentPath changes
-  // @ts-expect-error: electronAPI is injected by Electron preload and not typed in TS
   const electronAPI = window.electronAPI as {
     listDirectory?: (
       dirPath: string

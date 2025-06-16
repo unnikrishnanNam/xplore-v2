@@ -1,5 +1,4 @@
 import { atom } from "jotai";
-import { useEffect } from "react";
 
 export interface FileItem {
   id: string;
@@ -149,6 +148,7 @@ declare global {
   interface Window {
     electronAPI?: {
       getHomeDir?: () => Promise<string>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       listDirectory?: (dirPath: string) => Promise<any>;
       minimize?: () => void;
       maximize?: () => void;

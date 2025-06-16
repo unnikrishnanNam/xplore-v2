@@ -17,7 +17,6 @@ import {
   cloudProvidersAtom,
 } from "@/store/atoms";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
 
 const Sidebar = () => {
   const [collapsed] = useAtom(sidebarCollapsedAtom);
