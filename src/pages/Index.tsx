@@ -20,12 +20,22 @@ import {
 const Index = () => {
   const [terminalOpen, setTerminalOpen] = useAtom(terminalOpenAtom);
   const [, setCommandPaletteOpen] = useAtom(commandPaletteOpenAtom);
-  const [theme] = useAtom(themeAtom);
+  const [theme, setTheme] = useAtom(themeAtom);
   const setUpdateHome = useSetAtom(updateHomeAtoms);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
+
+  // Listen for system theme changes and update themeAtom
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = () => {
+      setTheme(media.matches ? "dark" : "light");
+    };
+    media.addEventListener("change", handleChange);
+    return () => media.removeEventListener("change", handleChange);
+  }, [setTheme]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

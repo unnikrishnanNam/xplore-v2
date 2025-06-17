@@ -18,7 +18,13 @@ export interface CloudProvider {
 }
 
 // Theme atoms
-export const themeAtom = atom<"light" | "dark">("dark");
+export const themeAtom = atom<"light" | "dark">(
+  typeof window !== "undefined" &&
+    window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light"
+);
 
 // UI state atoms
 export const sidebarCollapsedAtom = atom(false);
