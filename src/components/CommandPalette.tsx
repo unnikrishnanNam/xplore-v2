@@ -307,7 +307,7 @@ const CommandPalette = () => {
       onClick={handleClose}
     >
       <div
-        className="w-full max-w-xl mx-4 bg-white dark:bg-neutral-900 rounded-lg shadow-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden"
+        className="w-full max-w-xl mx-4 bg-white dark:bg-neutral-950 rounded-lg shadow-2xl border border-neutral-200 dark:border-neutral-800 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input */}
@@ -343,7 +343,7 @@ const CommandPalette = () => {
             <div className="py-1">
               {Object.entries(groupedCommands).map(([group, commands]) => (
                 <div key={group} className="mb-1 last:mb-0">
-                  <div className="px-4 py-1.5 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider bg-neutral-100 dark:bg-neutral-800">
+                  <div className="px-4 py-1.5 text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider bg-neutral-50 dark:bg-neutral-900">
                     {group}
                   </div>
                   {commands.map((command) => {
@@ -360,7 +360,7 @@ const CommandPalette = () => {
                           "w-full flex items-center px-4 py-2.5 text-left transition-colors",
                           globalIndex === selectedIndex
                             ? "bg-neutral-100 dark:bg-neutral-800 border-r-2 border-neutral-500"
-                            : "hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                            : "hover:bg-neutral-50 dark:hover:bg-neutral-800"
                         )}
                       >
                         <command.icon className="w-4 h-4 text-neutral-500 dark:text-neutral-400 mr-3" />
@@ -382,16 +382,16 @@ const CommandPalette = () => {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-3 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900">
+        <div className="flex items-center justify-between p-3 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900">
           <div className="flex items-center space-x-3 text-xs text-neutral-500 dark:text-neutral-400">
             <div className="flex items-center space-x-1">
-              <kbd className="px-1.5 py-0.5 bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 rounded text-xs font-mono">
+              <kbd className="px-1.5 py-0.5 bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded text-xs font-mono">
                 ↑↓
               </kbd>
               <span>navigate</span>
             </div>
             <div className="flex items-center space-x-1">
-              <kbd className="px-1.5 py-0.5 bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-600 rounded text-xs font-mono">
+              <kbd className="px-1.5 py-0.5 bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded text-xs font-mono">
                 ↵
               </kbd>
               <span>select</span>
