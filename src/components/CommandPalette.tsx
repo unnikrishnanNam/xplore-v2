@@ -16,6 +16,8 @@ import {
   SortAsc,
   SortDesc,
   Clock,
+  Sun,
+  Moon,
 } from "lucide-react";
 import {
   commandPaletteOpenAtom,
@@ -25,6 +27,7 @@ import {
   fileViewModeAtom,
   fileSortModeAtom,
   fileSortOrderAtom,
+  themeAtom,
 } from "@/store/atoms";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +48,7 @@ const CommandPalette = () => {
   const [viewMode, setViewMode] = useAtom(fileViewModeAtom);
   const [sortMode, setSortMode] = useAtom(fileSortModeAtom);
   const [sortOrder, setSortOrder] = useAtom(fileSortOrderAtom);
+  const [theme, setTheme] = useAtom(themeAtom);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const commandListRef = useRef<HTMLDivElement>(null);
@@ -202,6 +206,20 @@ const CommandPalette = () => {
       icon: Cloud,
       action: () => console.log("Opening cloud connection"),
       group: "Cloud",
+    },
+    {
+      id: "toggle-theme",
+      title:
+        theme === "dark" ? "Switch to Light Theme" : "Switch to Dark Theme",
+      description:
+        theme === "dark" ? "Switch to light mode" : "Switch to dark mode",
+      icon: theme === "dark" ? Sun : Moon,
+      action: () => {
+        const newTheme = theme === "dark" ? "light" : "dark";
+        setTheme(newTheme);
+        document.documentElement.classList.toggle("dark", newTheme === "dark");
+      },
+      group: "View",
     },
   ];
 
