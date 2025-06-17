@@ -154,7 +154,9 @@ declare global {
   interface Window {
     electronAPI?: {
       getHomeDir?: () => Promise<string>;
-      listDirectory?: (dirPath: string) => Promise<any>;
+      listDirectory?: (
+        dirPath: string
+      ) => Promise<{ success: boolean; files: FileItem[]; error?: string }>;
       minimize?: () => void;
       maximize?: () => void;
       close?: () => void;
