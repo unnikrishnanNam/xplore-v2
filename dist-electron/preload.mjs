@@ -28,5 +28,6 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
   minimize: () => electron.ipcRenderer.send("window-minimize"),
   maximize: () => electron.ipcRenderer.send("window-maximize"),
   close: () => electron.ipcRenderer.send("window-close"),
-  getHomeDir: () => electron.ipcRenderer.invoke("get-home-dir")
+  getHomeDir: () => electron.ipcRenderer.invoke("get-home-dir"),
+  openFile: (filePath) => electron.ipcRenderer.invoke("open-file", filePath)
 });

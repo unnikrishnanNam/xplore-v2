@@ -1,4 +1,4 @@
-import { ipcMain, app, BrowserWindow } from "electron";
+import { ipcMain, shell, app, BrowserWindow } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import fs from "fs";
@@ -72,6 +72,14 @@ ipcMain.on("window-maximize", () => {
 });
 ipcMain.on("window-close", () => {
   if (win) win.close();
+});
+ipcMain.handle("open-file", async (_event, filePath) => {
+  try {
+    await shell.openPath(filePath);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 });
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {

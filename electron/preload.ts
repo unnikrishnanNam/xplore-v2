@@ -32,4 +32,5 @@ contextBridge.exposeInMainWorld("electronAPI", {
   maximize: () => ipcRenderer.send("window-maximize"),
   close: () => ipcRenderer.send("window-close"),
   getHomeDir: () => ipcRenderer.invoke("get-home-dir"),
+  openFile: (filePath: string) => ipcRenderer.invoke("open-file", filePath),
 });

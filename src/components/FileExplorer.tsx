@@ -87,8 +87,16 @@ const FileExplorer = () => {
     if (file.type === "folder") {
       setCurrentPath(file.path);
     } else {
-      // Optionally: open file with default app or preview
-      console.log("Opening file:", file.name);
+      // Open file with default app using electronAPI
+      if (
+        typeof window !== "undefined" &&
+        window.electronAPI &&
+        typeof window.electronAPI.openFile === "function"
+      ) {
+        window.electronAPI.openFile(file.path);
+      } else {
+        console.log("Opening file:", file.name);
+      }
     }
   };
 

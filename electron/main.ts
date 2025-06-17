@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from "electron";
+import { app, BrowserWindow, ipcMain, shell } from "electron";
 // import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -97,6 +97,15 @@ ipcMain.on("window-maximize", () => {
 });
 ipcMain.on("window-close", () => {
   if (win) win.close();
+});
+
+ipcMain.handle("open-file", async (_event, filePath: string) => {
+  try {
+    await shell.openPath(filePath);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common

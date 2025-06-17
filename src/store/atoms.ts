@@ -38,7 +38,7 @@ export const pinnedFoldersAtom = atom([
   `${initialHome}/Documents/Important`,
 ]);
 
-export const filesAtom = atom([
+export const filesAtom = atom<FileItem[]>([
   {
     id: "1",
     name: "package.json",
@@ -148,11 +148,13 @@ declare global {
   interface Window {
     electronAPI?: {
       getHomeDir?: () => Promise<string>;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       listDirectory?: (dirPath: string) => Promise<any>;
       minimize?: () => void;
       maximize?: () => void;
       close?: () => void;
+      openFile?: (
+        filePath: string
+      ) => Promise<{ success: boolean; error?: string }>;
     };
   }
 }
