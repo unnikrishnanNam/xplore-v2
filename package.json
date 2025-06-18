@@ -40,6 +40,9 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@tailwindcss/vite": "^4.1.10",
     "@tanstack/react-query": "^5.80.7",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-web-links": "^0.11.0",
+    "@xterm/xterm": "^5.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -49,6 +52,7 @@
     "jotai": "^2.12.5",
     "lucide-react": "^0.515.0",
     "next-themes": "^0.4.6",
+    "node-pty": "^1.0.0",
     "react": "^18.2.0",
     "react-day-picker": "^9.7.0",
     "react-dom": "^18.2.0",
@@ -59,11 +63,12 @@
     "sonner": "^2.0.5",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.10",
+    "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2",
-    "zod": "^3.25.64",
-    "tailwindcss-animate": "^1.0.7"
+    "zod": "^3.25.64"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.0.1",
     "@types/node": "^24.0.1",
     "@types/react": "^18.2.64",
     "@types/react-dom": "^18.2.21",

@@ -28,7 +28,7 @@ export const themeAtom = atom<"light" | "dark">(
 
 // UI state atoms
 export const sidebarCollapsedAtom = atom(false);
-export const terminalOpenAtom = atom(false);
+export const terminalOpenAtom = atom(true); // Default to open
 export const terminalMinimizedAtom = atom(false);
 export const commandPaletteOpenAtom = atom(false);
 export const showHiddenFilesAtom = atom(false);

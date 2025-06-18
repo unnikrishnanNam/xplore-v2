@@ -33,4 +33,18 @@ contextBridge.exposeInMainWorld("electronAPI", {
   close: () => ipcRenderer.send("window-close"),
   getHomeDir: () => ipcRenderer.invoke("get-home-dir"),
   openFile: (filePath: string) => ipcRenderer.invoke("open-file", filePath),
+  // Terminal API
+  terminal: {
+    create: () => ipcRenderer.invoke("terminal:create"),
+    destroy: () => ipcRenderer.invoke("terminal:destroy"),
+    sendInput: (data: string) => ipcRenderer.send("terminal:input", data),
+    resize: (cols: number, rows: number) =>
+      ipcRenderer.send("terminal:resize", cols, rows),
+    onOutput: (callback: (data: string) => void) => {
+      ipcRenderer.on("terminal:output", (_event, data) => callback(data));
+    },
+    offOutput: (callback: (data: string) => void) => {
+      ipcRenderer.off("terminal:output", (_event, data) => callback(data));
+    },
+  },
 });

@@ -29,5 +29,18 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
   maximize: () => electron.ipcRenderer.send("window-maximize"),
   close: () => electron.ipcRenderer.send("window-close"),
   getHomeDir: () => electron.ipcRenderer.invoke("get-home-dir"),
-  openFile: (filePath) => electron.ipcRenderer.invoke("open-file", filePath)
+  openFile: (filePath) => electron.ipcRenderer.invoke("open-file", filePath),
+  // Terminal API
+  terminal: {
+    create: () => electron.ipcRenderer.invoke("terminal:create"),
+    destroy: () => electron.ipcRenderer.invoke("terminal:destroy"),
+    sendInput: (data) => electron.ipcRenderer.send("terminal:input", data),
+    resize: (cols, rows) => electron.ipcRenderer.send("terminal:resize", cols, rows),
+    onOutput: (callback) => {
+      electron.ipcRenderer.on("terminal:output", (_event, data) => callback(data));
+    },
+    offOutput: (callback) => {
+      electron.ipcRenderer.off("terminal:output", (_event, data) => callback(data));
+    }
+  }
 });
