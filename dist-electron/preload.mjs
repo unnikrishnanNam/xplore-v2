@@ -36,6 +36,8 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
   deleteFile: (filePath) => electron.ipcRenderer.invoke("delete-file", filePath),
   renameFile: (oldPath, newPath) => electron.ipcRenderer.invoke("rename-file", oldPath, newPath),
   checkPathExists: (filePath) => electron.ipcRenderer.invoke("check-path-exists", filePath),
+  // SSH connection
+  connectSSH: (credentials) => electron.ipcRenderer.invoke("connect-ssh", credentials),
   // Terminal API
   terminal: {
     create: () => electron.ipcRenderer.invoke("terminal:create"),

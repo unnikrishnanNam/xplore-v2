@@ -300,6 +300,71 @@ ipcMain.handle("terminal:destroy", () => {
   return "no terminal to destroy";
 });
 
+// SSH connection handler
+ipcMain.handle(
+  "connect-ssh",
+  async (
+    _event,
+    credentials: {
+      username: string;
+      password: string;
+      vmName: string;
+      vmIP: string;
+    }
+  ) => {
+    console.log("SSH connection request received:", {
+      vmName: credentials.vmName,
+      vmIP: credentials.vmIP,
+      username: credentials.username,
+    });
+
+    try {
+      // Kill existing PTY if it exists
+      if (shellPty) {
+        console.log("Killing existing terminal process for SSH connection");
+        shellPty.kill();
+        shellPty = null;
+      }
+
+      // Create SSH command
+      const sshCommand = `sshpass -p '${credentials.password}' ssh -o StrictHostKeyChecking=no ${credentials.username}@${credentials.vmIP}`;
+
+      console.log(
+        "Creating SSH connection with command:",
+        sshCommand.replace(credentials.password, "***")
+      );
+
+      // Create new PTY with SSH connection
+      shellPty = pty.spawn("bash", ["-c", sshCommand], {
+        name: "xterm-color",
+        cols: 80,
+        rows: 24,
+        cwd: process.env.HOME,
+        env: process.env as Record<string, string>,
+      });
+
+      shellPty.onData((data) => {
+        if (win) {
+          win.webContents.send("terminal:output", data);
+        }
+      });
+
+      shellPty.onExit((exitCode) => {
+        console.log("SSH terminal process exited with code:", exitCode);
+        shellPty = null;
+      });
+
+      console.log("SSH connection established successfully");
+      return { success: true };
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      console.error("SSH connection failed:", errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  }
+);
+
 ipcMain.on("window-minimize", () => {
   if (win) win.minimize();
 });

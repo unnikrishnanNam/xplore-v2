@@ -25,6 +25,7 @@ import { toast } from "@/components/ui/sonner";
 import Toolbar from "./Toolbar";
 import { FilledFile, FilledFolder } from "./Icons";
 import MultiStepDialog from "./MultiStepDialog";
+import VMServicePage from "./VMServicePage";
 import type { FileItem } from "@/store/atoms";
 
 const FileExplorer = () => {
@@ -769,6 +770,11 @@ const FileExplorer = () => {
         )}
       </div>
     );
+  }
+
+  // Check if we're on the VM Service page
+  if (currentPath === "/cloud/vm-service") {
+    return <VMServicePage />;
   }
 
   return (

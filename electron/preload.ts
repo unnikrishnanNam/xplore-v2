@@ -1,5 +1,12 @@
 import { ipcRenderer, contextBridge } from "electron";
 
+interface SSHCredentials {
+  username: string;
+  password: string;
+  vmName: string;
+  vmIP: string;
+}
+
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld("ipcRenderer", {
   on(...args: Parameters<typeof ipcRenderer.on>) {
@@ -44,6 +51,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke("rename-file", oldPath, newPath),
   checkPathExists: (filePath: string) =>
     ipcRenderer.invoke("check-path-exists", filePath),
+  // SSH connection
+  connectSSH: (credentials: SSHCredentials) =>
+    ipcRenderer.invoke("connect-ssh", credentials),
 
   // Terminal API
   terminal: {

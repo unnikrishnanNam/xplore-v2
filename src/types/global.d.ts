@@ -1,3 +1,10 @@
+export interface SSHCredentials {
+  username: string;
+  password: string;
+  vmName: string;
+  vmIP: string;
+}
+
 export interface TerminalAPI {
   create: () => Promise<string>;
   destroy: () => Promise<string>;
@@ -50,6 +57,9 @@ export interface ElectronAPI {
     newPath: string
   ) => Promise<FileOperationResult>;
   checkPathExists: (filePath: string) => Promise<PathExistsResult>;
+
+  // SSH connection
+  connectSSH: (credentials: SSHCredentials) => Promise<void>;
 
   terminal: TerminalAPI;
 }

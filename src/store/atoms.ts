@@ -13,7 +13,7 @@ export interface FileItem {
 export interface CloudProvider {
   id: string;
   name: string;
-  type: "google-drive" | "onedrive" | "dropbox";
+  type: "google-drive" | "onedrive" | "dropbox" | "vm-service";
   connected: boolean;
 }
 
@@ -150,9 +150,10 @@ export const updateHomeAtoms = atom(null, async (_get, set) => {
 
 // Cloud providers atom
 export const cloudProvidersAtom = atom<CloudProvider[]>([
-  { id: "1", name: "Google Drive", type: "google-drive", connected: true },
-  { id: "2", name: "OneDrive", type: "onedrive", connected: false },
-  { id: "3", name: "Dropbox", type: "dropbox", connected: true },
+  // { id: "1", name: "Google Drive", type: "google-drive", connected: false },
+  // { id: "2", name: "OneDrive", type: "onedrive", connected: false },
+  // { id: "3", name: "Dropbox", type: "dropbox", connected: false },
+  { id: "4", name: "VM Service", type: "vm-service", connected: false },
 ]);
 
 // File view and sorting atoms
