@@ -1,15 +1,17 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useAtom, useSetAtom } from "jotai";
 import TitleBar from "../components/TitleBar";
 import Sidebar from "../components/Sidebar";
 import FileExplorer from "../components/FileExplorer";
 import Terminal from "../components/Terminal";
 import CommandPalette from "../components/CommandPalette";
+import MultiStepDialogDemo from "../components/MultiStepDialogDemo";
 import {
   terminalOpenAtom,
   commandPaletteOpenAtom,
   themeAtom,
   updateHomeAtoms,
+  demoModeAtom,
 } from "../store/atoms";
 import {
   ResizablePanelGroup,
@@ -22,6 +24,7 @@ const Index = () => {
   const [, setCommandPaletteOpen] = useAtom(commandPaletteOpenAtom);
   const [theme, setTheme] = useAtom(themeAtom);
   const setUpdateHome = useSetAtom(updateHomeAtoms);
+  const [showDemo, setShowDemo] = useAtom(demoModeAtom);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -50,11 +53,17 @@ const Index = () => {
         e.preventDefault();
         setCommandPaletteOpen((prev) => !prev);
       }
+
+      // Demo mode toggle: Ctrl+Shift+D
+      if (e.ctrlKey && e.shiftKey && e.code === "KeyD") {
+        e.preventDefault();
+        setShowDemo((prev) => !prev);
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [setTerminalOpen, setCommandPaletteOpen]);
+  }, [setTerminalOpen, setCommandPaletteOpen, setShowDemo]);
 
   useEffect(() => {
     setUpdateHome();
@@ -80,6 +89,26 @@ const Index = () => {
         )}
       </ResizablePanelGroup>
       <CommandPalette />
+
+      {/* Demo Mode Overlay */}
+      {showDemo && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 flex items-center justify-center">
+          <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-auto m-4">
+            <div className="sticky top-0 bg-white dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 p-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+                Multi-Step Dialog Demonstrations
+              </h2>
+              <button
+                onClick={() => setShowDemo(false)}
+                className="text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+              >
+                ✕
+              </button>
+            </div>
+            <MultiStepDialogDemo />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

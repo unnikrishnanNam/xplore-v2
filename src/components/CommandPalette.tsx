@@ -18,6 +18,7 @@ import {
   Clock,
   Sun,
   Moon,
+  Edit3,
 } from "lucide-react";
 import {
   commandPaletteOpenAtom,
@@ -28,6 +29,11 @@ import {
   fileSortModeAtom,
   fileSortOrderAtom,
   themeAtom,
+  createFileDialogAtom,
+  renameDialogAtom,
+  selectedFilesAtom,
+  filesAtom,
+  demoModeAtom,
 } from "@/store/atoms";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +55,11 @@ const CommandPalette = () => {
   const [sortMode, setSortMode] = useAtom(fileSortModeAtom);
   const [sortOrder, setSortOrder] = useAtom(fileSortOrderAtom);
   const [theme, setTheme] = useAtom(themeAtom);
+  const [, setCreateDialog] = useAtom(createFileDialogAtom);
+  const [, setRenameDialog] = useAtom(renameDialogAtom);
+  const [selectedFiles] = useAtom(selectedFilesAtom);
+  const [files] = useAtom(filesAtom);
+  const [, setDemoMode] = useAtom(demoModeAtom);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const commandListRef = useRef<HTMLDivElement>(null);
@@ -156,7 +167,10 @@ const CommandPalette = () => {
       title: "New File",
       description: "Create a new file in current directory",
       icon: File,
-      action: () => console.log("Creating new file"),
+      action: () => {
+        setCreateDialog({ open: true, type: "file" });
+        setIsOpen(false);
+      },
       group: "File Operations",
     },
     {
@@ -164,7 +178,39 @@ const CommandPalette = () => {
       title: "New Folder",
       description: "Create a new folder in current directory",
       icon: Folder,
-      action: () => console.log("Creating new folder"),
+      action: () => {
+        setCreateDialog({ open: true, type: "folder" });
+        setIsOpen(false);
+      },
+      group: "File Operations",
+    },
+    {
+      id: "rename-selected",
+      title: "Rename Selected Item",
+      description:
+        selectedFiles.length === 1
+          ? `Rename ${
+              files.find((f) => f.id === selectedFiles[0])?.name ||
+              "selected item"
+            }`
+          : selectedFiles.length === 0
+          ? "Select a file or folder to rename"
+          : "Select only one item to rename",
+      icon: Edit3,
+      action: () => {
+        if (selectedFiles.length === 1) {
+          const selectedFile = files.find((f) => f.id === selectedFiles[0]);
+          if (selectedFile) {
+            setRenameDialog({
+              open: true,
+              fileId: selectedFile.id,
+              currentName: selectedFile.name,
+              fileType: selectedFile.type,
+            });
+            setIsOpen(false);
+          }
+        }
+      },
       group: "File Operations",
     },
     {
@@ -220,6 +266,17 @@ const CommandPalette = () => {
         document.documentElement.classList.toggle("dark", newTheme === "dark");
       },
       group: "View",
+    },
+    {
+      id: "show-demo",
+      title: "Show Multi-Step Dialog Demo",
+      description: "Open demo showcasing multi-step dialog capabilities",
+      icon: Settings,
+      action: () => {
+        setDemoMode(true);
+        setIsOpen(false);
+      },
+      group: "Application",
     },
   ];
 

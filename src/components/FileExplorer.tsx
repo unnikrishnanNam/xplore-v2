@@ -1,6 +1,13 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useAtom } from "jotai";
-import { FilePlus, FolderPlus, Settings } from "lucide-react";
+import {
+  FilePlus,
+  FolderPlus,
+  Settings,
+  File,
+  FileText,
+  Edit3,
+} from "lucide-react";
 import {
   filesAtom,
   selectedFilesAtom,
@@ -9,11 +16,15 @@ import {
   fileSortModeAtom,
   fileSortOrderAtom,
   showHiddenFilesAtom,
+  commandPaletteOpenAtom,
+  createFileDialogAtom,
+  renameDialogAtom,
 } from "@/store/atoms";
 import { cn } from "@/lib/utils";
+import { toast } from "@/components/ui/sonner";
 import Toolbar from "./Toolbar";
 import { FilledFile, FilledFolder } from "./Icons";
-import CreateFileDialog from "./CreateFileDialog";
+import MultiStepDialog from "./MultiStepDialog";
 import type { FileItem } from "@/store/atoms";
 
 const FileExplorer = () => {
@@ -24,14 +35,17 @@ const FileExplorer = () => {
   const [sortMode] = useAtom(fileSortModeAtom);
   const [sortOrder] = useAtom(fileSortOrderAtom);
   const [showHiddenFiles] = useAtom(showHiddenFilesAtom);
+  const [, setCommandPaletteOpen] = useAtom(commandPaletteOpenAtom);
+  const [createDialog, setCreateDialog] = useAtom(createFileDialogAtom);
+  const [renameDialog, setRenameDialog] = useAtom(renameDialogAtom);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
     fileId?: string;
   } | null>(null);
-  const [createDialog, setCreateDialog] = useState<{
-    open: boolean;
-    type: "file" | "folder";
+  const [clipboard, setClipboard] = useState<{
+    items: FileItem[];
+    operation: "copy" | "cut";
   } | null>(null);
 
   const sortedFiles = useMemo(() => {
@@ -124,28 +138,328 @@ const FileExplorer = () => {
       setContextMenu(null);
     }
   };
+  const handleCreateFile = async (values: Record<string, string>) => {
+    const name = values.filename;
+    const extension = values.extension;
+    const fullName = extension ? `${name}.${extension}` : name;
+    const filePath = `${currentPath}/${fullName}`;
 
-  const handleCreateFile = (name: string) => {
-    const newFile = {
-      id: Date.now().toString(),
-      name,
-      type: "file" as const,
-      size: 0,
-      modified: new Date(),
-      path: `${currentPath}/${name}`,
-    };
-    setFiles((prev) => [...prev, newFile]);
+    try {
+      if (window.electronAPI?.createFile) {
+        const result = await window.electronAPI.createFile(filePath, "");
+
+        if (result.success && result.file) {
+          // Add the new file to the state
+          setFiles((prev) => [...prev, result.file!]);
+
+          // Show success notification
+          toast.success("File created successfully", {
+            description: `Created ${result.file.name}`,
+          });
+
+          // Refresh the directory to ensure consistency
+          refreshDirectory();
+        } else {
+          console.error("Failed to create file:", result.error);
+          toast.error("Failed to create file", {
+            description: result.error || "Unknown error occurred",
+          });
+        }
+      } else {
+        // Fallback to mock behavior for development
+        const newFile = {
+          id: Date.now().toString(),
+          name: fullName,
+          type: "file" as const,
+          size: 0,
+          modified: new Date(),
+          path: filePath,
+        };
+        setFiles((prev) => [...prev, newFile]);
+      }
+    } catch (error) {
+      console.error("Error creating file:", error);
+      toast.error("Error creating file", {
+        description: String(error),
+      });
+    }
+
+    // Close command palette if it was open
+    setCommandPaletteOpen(false);
   };
 
-  const handleCreateFolder = (name: string) => {
-    const newFolder = {
-      id: Date.now().toString(),
-      name,
-      type: "folder" as const,
-      modified: new Date(),
-      path: `${currentPath}/${name}`,
-    };
-    setFiles((prev) => [...prev, newFolder]);
+  const handleCreateFolder = async (values: Record<string, string>) => {
+    const name = values.foldername;
+    const folderPath = `${currentPath}/${name}`;
+
+    try {
+      if (window.electronAPI?.createFolder) {
+        const result = await window.electronAPI.createFolder(folderPath);
+
+        if (result.success && result.folder) {
+          // Add the new folder to the state
+          setFiles((prev) => [...prev, result.folder!]);
+
+          // Show success notification
+          toast.success("Folder created successfully", {
+            description: `Created ${result.folder.name}`,
+          });
+
+          // Refresh the directory to ensure consistency
+          refreshDirectory();
+        } else {
+          console.error("Failed to create folder:", result.error);
+          toast.error("Failed to create folder", {
+            description: result.error || "Unknown error occurred",
+          });
+        }
+      } else {
+        // Fallback to mock behavior for development
+        const newFolder = {
+          id: Date.now().toString(),
+          name,
+          type: "folder" as const,
+          modified: new Date(),
+          path: folderPath,
+        };
+        setFiles((prev) => [...prev, newFolder]);
+      }
+    } catch (error) {
+      console.error("Error creating folder:", error);
+      toast.error("Error creating folder", {
+        description: String(error),
+      });
+    }
+
+    // Close command palette if it was open
+    setCommandPaletteOpen(false);
+  };
+
+  // Function to refresh directory contents
+  const refreshDirectory = async () => {
+    if (window.electronAPI?.listDirectory) {
+      try {
+        const result = await window.electronAPI.listDirectory(currentPath);
+        if (result.success && result.files) {
+          setFiles(result.files);
+        }
+      } catch (error) {
+        console.error("Error refreshing directory:", error);
+      }
+    }
+  };
+
+  // Action handlers for context menu operations
+  const handleDelete = async (fileId: string) => {
+    const file = files.find((f) => f.id === fileId);
+    if (!file) return;
+
+    if (window.electronAPI?.deleteFile) {
+      try {
+        const result = await window.electronAPI.deleteFile(file.path);
+
+        if (result.success) {
+          // Remove the file from state
+          setFiles((prev) => prev.filter((f) => f.id !== fileId));
+          setSelectedFiles((prev) => prev.filter((id) => id !== fileId));
+
+          toast.success(
+            `${
+              file.type === "folder" ? "Folder" : "File"
+            } deleted successfully`,
+            {
+              description: `Deleted ${file.name}`,
+            }
+          );
+
+          // Refresh directory
+          refreshDirectory();
+        } else {
+          toast.error(
+            `Failed to delete ${file.type === "folder" ? "folder" : "file"}`,
+            {
+              description: result.error || "Unknown error occurred",
+            }
+          );
+        }
+      } catch (error) {
+        console.error("Error deleting file:", error);
+        toast.error(
+          `Error deleting ${file.type === "folder" ? "folder" : "file"}`,
+          {
+            description: String(error),
+          }
+        );
+      }
+    } else {
+      // Fallback for development
+      setFiles((prev) => prev.filter((f) => f.id !== fileId));
+      setSelectedFiles((prev) => prev.filter((id) => id !== fileId));
+      toast.success(`${file.type === "folder" ? "Folder" : "File"} deleted`, {
+        description: `Deleted ${file.name}`,
+      });
+    }
+    closeContextMenu();
+  };
+
+  const handleRenameClick = (fileId: string) => {
+    const file = files.find((f) => f.id === fileId);
+    if (file) {
+      setRenameDialog({
+        open: true,
+        fileId,
+        currentName: file.name,
+        fileType: file.type,
+      });
+    }
+    closeContextMenu();
+  };
+
+  const handleRenameConfirm = async (values: Record<string, string>) => {
+    if (!renameDialog) return;
+
+    const newName = values.newname;
+    const file = files.find((f) => f.id === renameDialog.fileId);
+    if (!file) return;
+
+    const newPath = `${currentPath}/${newName}`;
+
+    if (window.electronAPI?.renameFile) {
+      try {
+        const result = await window.electronAPI.renameFile(file.path, newPath);
+
+        if (result.success && result.file) {
+          // Update the file in state
+          setFiles((prev) =>
+            prev.map((f) => (f.id === renameDialog.fileId ? result.file! : f))
+          );
+
+          toast.success(
+            `${
+              file.type === "folder" ? "Folder" : "File"
+            } renamed successfully`,
+            {
+              description: `Renamed to ${newName}`,
+            }
+          );
+
+          // Refresh directory
+          refreshDirectory();
+        } else {
+          toast.error(
+            `Failed to rename ${file.type === "folder" ? "folder" : "file"}`,
+            {
+              description: result.error || "Unknown error occurred",
+            }
+          );
+        }
+      } catch (error) {
+        console.error("Error renaming file:", error);
+        toast.error(
+          `Error renaming ${file.type === "folder" ? "folder" : "file"}`,
+          {
+            description: String(error),
+          }
+        );
+      }
+    } else {
+      // Fallback for development
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.id === renameDialog.fileId
+            ? { ...f, name: newName, path: newPath }
+            : f
+        )
+      );
+      toast.success(`${file.type === "folder" ? "Folder" : "File"} renamed`, {
+        description: `Renamed to ${newName}`,
+      });
+    }
+
+    setRenameDialog(null);
+  };
+
+  const handleCopy = (fileIds: string[]) => {
+    const filesToCopy = files.filter((f) => fileIds.includes(f.id));
+    setClipboard({ items: filesToCopy, operation: "copy" });
+    toast.success(
+      `Copied ${filesToCopy.length} item${filesToCopy.length > 1 ? "s" : ""}`,
+      {
+        description: filesToCopy.map((f) => f.name).join(", "),
+      }
+    );
+    closeContextMenu();
+  };
+
+  const handleCut = (fileIds: string[]) => {
+    const filesToCut = files.filter((f) => fileIds.includes(f.id));
+    setClipboard({ items: filesToCut, operation: "cut" });
+    toast.success(
+      `Cut ${filesToCut.length} item${filesToCut.length > 1 ? "s" : ""}`,
+      {
+        description: filesToCut.map((f) => f.name).join(", "),
+      }
+    );
+    closeContextMenu();
+  };
+
+  const handlePaste = async () => {
+    if (!clipboard || clipboard.items.length === 0) {
+      toast.error("Nothing to paste");
+      return;
+    }
+
+    try {
+      for (const item of clipboard.items) {
+        const newPath = `${currentPath}/${item.name}`;
+
+        if (clipboard.operation === "copy") {
+          // For copy operation, we'd need to implement file copying in the backend
+          // For now, show a message that copy is not yet implemented
+          toast.error("Copy operation not yet implemented", {
+            description: "This feature will be available in a future update",
+          });
+        } else if (clipboard.operation === "cut") {
+          // For cut operation, we can use rename/move
+          if (window.electronAPI?.renameFile) {
+            const result = await window.electronAPI.renameFile(
+              item.path,
+              newPath
+            );
+
+            if (result.success && result.file) {
+              // Update file list
+              setFiles((prev) =>
+                prev.map((f) => (f.id === item.id ? result.file! : f))
+              );
+
+              toast.success(`Moved ${item.name}`, {
+                description: `Moved to ${currentPath}`,
+              });
+            } else {
+              toast.error(`Failed to move ${item.name}`, {
+                description: result.error || "Unknown error occurred",
+              });
+            }
+          }
+        }
+      }
+
+      // Clear clipboard after paste
+      if (clipboard.operation === "cut") {
+        setClipboard(null);
+      }
+
+      // Refresh directory
+      refreshDirectory();
+    } catch (error) {
+      console.error("Error pasting files:", error);
+      toast.error("Error pasting files", {
+        description: String(error),
+      });
+    }
+
+    closeContextMenu();
   };
 
   const closeContextMenu = () => {
@@ -201,17 +515,29 @@ const FileExplorer = () => {
                 Open in New Tab
               </button>
               <div className="h-px bg-neutral-200 dark:bg-neutral-800 mx-2 my-1" />
-              <button className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+              <button
+                className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+                onClick={() => handleCopy([contextMenu.fileId!])}
+              >
                 Copy
               </button>
-              <button className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+              <button
+                className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+                onClick={() => handleCut([contextMenu.fileId!])}
+              >
                 Cut
               </button>
-              <button className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+              <button
+                className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+                onClick={() => handleRenameClick(contextMenu.fileId!)}
+              >
                 Rename
               </button>
               <div className="h-px bg-neutral-200 dark:bg-neutral-800 mx-2 my-1" />
-              <button className="w-full group flex items-center text-left px-4 py-2 text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
+              <button
+                className="w-full group flex items-center text-left px-4 py-2 text-sm text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                onClick={() => handleDelete(contextMenu.fileId!)}
+              >
                 Delete
               </button>
             </>
@@ -238,7 +564,11 @@ const FileExplorer = () => {
                 Create Folder
               </button>
               <div className="h-px bg-neutral-200 dark:bg-neutral-800 mx-2 my-1" />
-              <button className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors">
+              <button
+                className="w-full group flex items-center text-left px-4 py-2 text-sm text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handlePaste}
+                disabled={!clipboard || clipboard.items.length === 0}
+              >
                 Paste
               </button>
               <div className="h-px bg-neutral-200 dark:bg-neutral-800 mx-2 my-1" />
@@ -331,15 +661,110 @@ const FileExplorer = () => {
         <ContextMenu />
 
         {createDialog && (
-          <CreateFileDialog
+          <MultiStepDialog
             open={createDialog.open}
             onOpenChange={(open) => setCreateDialog(open ? createDialog : null)}
-            onConfirm={
+            title={`Create ${
+              createDialog.type === "file" ? "New File" : "New Folder"
+            }`}
+            steps={
+              createDialog.type === "file"
+                ? [
+                    {
+                      id: "filename",
+                      title: "File Name",
+                      description: "Enter the name for your new file",
+                      placeholder: "Enter file name (without extension)...",
+                      value: "",
+                      required: true,
+                      icon: File,
+                      validation: (value, values) => {
+                        if (!value.trim()) return "File name is required";
+                        if (value.includes("/") || value.includes("\\")) {
+                          return "File name cannot contain slashes";
+                        }
+                        if (value.length > 255) {
+                          return "File name is too long";
+                        }
+                        // Check for existing files
+                        const extension = values?.extension;
+                        const fullName = extension
+                          ? `${value}.${extension}`
+                          : value;
+                        const exists = sortedFiles.some(
+                          (file) => file.name === fullName
+                        );
+                        if (exists) {
+                          return "A file with this name already exists";
+                        }
+                        return null;
+                      },
+                    },
+                    {
+                      id: "extension",
+                      title: "File Extension",
+                      description: "Enter the file extension (optional)",
+                      placeholder: "Enter extension (e.g., txt, js, py)...",
+                      value: "",
+                      icon: FileText,
+                      validation: (value, values) => {
+                        if (value && value.includes(".")) {
+                          return "Extension should not include the dot";
+                        }
+                        if (value && value.length > 10) {
+                          return "Extension is too long";
+                        }
+                        // Check for existing files with the full name
+                        const filename = values?.filename;
+                        if (filename && value) {
+                          const fullName = `${filename}.${value}`;
+                          const exists = sortedFiles.some(
+                            (file) => file.name === fullName
+                          );
+                          if (exists) {
+                            return "A file with this name already exists";
+                          }
+                        }
+                        return null;
+                      },
+                    },
+                  ]
+                : [
+                    {
+                      id: "foldername",
+                      title: "Folder Name",
+                      description: "Enter the name for your new folder",
+                      placeholder: "Enter folder name...",
+                      value: "",
+                      required: true,
+                      icon: FolderPlus,
+                      validation: (value) => {
+                        if (!value.trim()) return "Folder name is required";
+                        if (value.includes("/") || value.includes("\\")) {
+                          return "Folder name cannot contain slashes";
+                        }
+                        if (value.length > 255) {
+                          return "Folder name is too long";
+                        }
+                        // Check for existing folders using in-memory file list
+                        // (Real-time file system checking will happen on creation)
+                        const exists = sortedFiles.some(
+                          (file) =>
+                            file.name === value && file.type === "folder"
+                        );
+                        if (exists) {
+                          return "A folder with this name already exists";
+                        }
+                        return null;
+                      },
+                    },
+                  ]
+            }
+            onComplete={
               createDialog.type === "file"
                 ? handleCreateFile
                 : handleCreateFolder
             }
-            type={createDialog.type}
           />
         )}
       </div>
@@ -412,13 +837,158 @@ const FileExplorer = () => {
       <ContextMenu />
 
       {createDialog && (
-        <CreateFileDialog
+        <MultiStepDialog
           open={createDialog.open}
           onOpenChange={(open) => setCreateDialog(open ? createDialog : null)}
-          onConfirm={
+          title={`Create ${
+            createDialog.type === "file" ? "New File" : "New Folder"
+          }`}
+          steps={
+            createDialog.type === "file"
+              ? [
+                  {
+                    id: "filename",
+                    title: "File Name",
+                    description: "Enter the name for your new file",
+                    placeholder: "Enter file name (without extension)...",
+                    value: "",
+                    required: true,
+                    icon: File,
+                    validation: (value, values) => {
+                      if (!value.trim()) return "File name is required";
+                      if (value.includes("/") || value.includes("\\")) {
+                        return "File name cannot contain slashes";
+                      }
+                      if (value.length > 255) {
+                        return "File name is too long";
+                      }
+                      // Check for existing files using in-memory file list
+                      // (Real-time file system checking will happen on creation)
+                      const extension = values?.extension;
+                      const fullName = extension
+                        ? `${value}.${extension}`
+                        : value;
+                      const exists = sortedFiles.some(
+                        (file) => file.name === fullName
+                      );
+                      if (exists) {
+                        return "A file with this name already exists";
+                      }
+                      return null;
+                    },
+                  },
+                  {
+                    id: "extension",
+                    title: "File Extension",
+                    description: "Enter the file extension (optional)",
+                    placeholder: "Enter extension (e.g., txt, js, py)...",
+                    value: "",
+                    icon: FileText,
+                    validation: (value, values) => {
+                      if (value && value.includes(".")) {
+                        return "Extension should not include the dot";
+                      }
+                      if (value && value.length > 10) {
+                        return "Extension is too long";
+                      }
+                      // Check for existing files with the full name using in-memory file list
+                      // (Real-time file system checking will happen on creation)
+                      const filename = values?.filename;
+                      if (filename && value) {
+                        const fullName = `${filename}.${value}`;
+                        const exists = sortedFiles.some(
+                          (file) => file.name === fullName
+                        );
+                        if (exists) {
+                          return "A file with this name already exists";
+                        }
+                      }
+                      return null;
+                    },
+                  },
+                ]
+              : [
+                  {
+                    id: "foldername",
+                    title: "Folder Name",
+                    description: "Enter the name for your new folder",
+                    placeholder: "Enter folder name...",
+                    value: "",
+                    required: true,
+                    icon: FolderPlus,
+                    validation: (value) => {
+                      if (!value.trim()) return "Folder name is required";
+                      if (value.includes("/") || value.includes("\\")) {
+                        return "Folder name cannot contain slashes";
+                      }
+                      if (value.length > 255) {
+                        return "Folder name is too long";
+                      }
+                      // Check for existing folders
+                      const exists = sortedFiles.some(
+                        (file) => file.name === value && file.type === "folder"
+                      );
+                      if (exists) {
+                        return "A folder with this name already exists";
+                      }
+                      return null;
+                    },
+                  },
+                ]
+          }
+          onComplete={
             createDialog.type === "file" ? handleCreateFile : handleCreateFolder
           }
-          type={createDialog.type}
+        />
+      )}
+
+      {/* Rename Dialog */}
+      {renameDialog && (
+        <MultiStepDialog
+          open={renameDialog.open}
+          onOpenChange={(open) => setRenameDialog(open ? renameDialog : null)}
+          title={`Rename ${
+            renameDialog.fileType === "folder" ? "Folder" : "File"
+          }`}
+          steps={[
+            {
+              id: "newname",
+              title: "New Name",
+              description: `Enter a new name for this ${renameDialog.fileType}`,
+              placeholder: `Enter new ${renameDialog.fileType} name...`,
+              value: renameDialog.currentName,
+              required: true,
+              icon: Edit3,
+              validation: (value) => {
+                if (!value.trim())
+                  return `${
+                    renameDialog.fileType === "folder" ? "Folder" : "File"
+                  } name is required`;
+                if (value.includes("/") || value.includes("\\")) {
+                  return `${
+                    renameDialog.fileType === "folder" ? "Folder" : "File"
+                  } name cannot contain slashes`;
+                }
+                if (value.length > 255) {
+                  return `${
+                    renameDialog.fileType === "folder" ? "Folder" : "File"
+                  } name is too long`;
+                }
+                // Check for existing files/folders with the same name (excluding current item)
+                const exists = sortedFiles.some(
+                  (file) =>
+                    file.name === value &&
+                    file.id !== renameDialog.fileId &&
+                    file.type === renameDialog.fileType
+                );
+                if (exists) {
+                  return `A ${renameDialog.fileType} with this name already exists`;
+                }
+                return null;
+              },
+            },
+          ]}
+          onComplete={handleRenameConfirm}
         />
       )}
     </div>

@@ -17,6 +17,17 @@ export interface FileItem {
   icon?: string;
 }
 
+export interface FileOperationResult {
+  success: boolean;
+  error?: string;
+  file?: FileItem;
+  folder?: FileItem;
+}
+
+export interface PathExistsResult {
+  exists: boolean;
+}
+
 export interface ElectronAPI {
   listDirectory: (
     dirPath: string
@@ -25,7 +36,21 @@ export interface ElectronAPI {
   maximize: () => void;
   close: () => void;
   getHomeDir: () => Promise<string>;
-  openFile: (filePath: string) => Promise<unknown>;
+  openFile: (filePath: string) => Promise<{ success: boolean; error?: string }>;
+
+  // File operations
+  createFile: (
+    filePath: string,
+    content?: string
+  ) => Promise<FileOperationResult>;
+  createFolder: (folderPath: string) => Promise<FileOperationResult>;
+  deleteFile: (filePath: string) => Promise<FileOperationResult>;
+  renameFile: (
+    oldPath: string,
+    newPath: string
+  ) => Promise<FileOperationResult>;
+  checkPathExists: (filePath: string) => Promise<PathExistsResult>;
+
   terminal: TerminalAPI;
 }
 

@@ -32,6 +32,17 @@ export const terminalOpenAtom = atom(true); // Default to open
 export const terminalMinimizedAtom = atom(false);
 export const commandPaletteOpenAtom = atom(false);
 export const showHiddenFilesAtom = atom(false);
+export const createFileDialogAtom = atom<{
+  open: boolean;
+  type: "file" | "folder";
+} | null>(null);
+export const renameDialogAtom = atom<{
+  open: boolean;
+  fileId: string;
+  currentName: string;
+  fileType: "file" | "folder";
+} | null>(null);
+export const demoModeAtom = atom(false);
 
 // File system atoms
 // Synchronous fallback for initial render
@@ -148,21 +159,3 @@ export const cloudProvidersAtom = atom<CloudProvider[]>([
 export const fileViewModeAtom = atom<"list" | "grid">("list");
 export const fileSortModeAtom = atom<"name" | "size" | "modified">("name");
 export const fileSortOrderAtom = atom<"asc" | "desc">("asc");
-
-// TypeScript global declaration for electronAPI
-declare global {
-  interface Window {
-    electronAPI?: {
-      getHomeDir?: () => Promise<string>;
-      listDirectory?: (
-        dirPath: string
-      ) => Promise<{ success: boolean; files: FileItem[]; error?: string }>;
-      minimize?: () => void;
-      maximize?: () => void;
-      close?: () => void;
-      openFile?: (
-        filePath: string
-      ) => Promise<{ success: boolean; error?: string }>;
-    };
-  }
-}

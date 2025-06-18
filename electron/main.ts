@@ -120,6 +120,152 @@ ipcMain.handle("get-home-dir", () => {
   return os.homedir();
 });
 
+// File operations handlers
+ipcMain.handle(
+  "create-file",
+  async (_event, filePath: string, content = "") => {
+    try {
+      // Ensure the directory exists
+      const directory = path.dirname(filePath);
+      await fs.promises.mkdir(directory, { recursive: true });
+
+      // Check if file already exists
+      try {
+        await fs.promises.access(filePath);
+        return { success: false, error: "File already exists" };
+      } catch {
+        // File doesn't exist, which is what we want
+      }
+
+      // Create the file with the specified content
+      await fs.promises.writeFile(filePath, content, "utf8");
+
+      // Get file stats for return
+      const stat = await fs.promises.stat(filePath);
+      const fileInfo = {
+        id: filePath,
+        name: path.basename(filePath),
+        type: "file" as const,
+        size: stat.size,
+        modified: stat.mtime,
+        path: filePath,
+      };
+
+      return { success: true, file: fileInfo };
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      return { success: false, error: errorMessage };
+    }
+  }
+);
+
+ipcMain.handle("create-folder", async (_event, folderPath: string) => {
+  try {
+    // Check if folder already exists
+    try {
+      const stat = await fs.promises.stat(folderPath);
+      if (stat.isDirectory()) {
+        return { success: false, error: "Folder already exists" };
+      } else {
+        return {
+          success: false,
+          error: "A file with this name already exists",
+        };
+      }
+    } catch {
+      // Folder doesn't exist, which is what we want
+    }
+
+    // Create the folder
+    await fs.promises.mkdir(folderPath, { recursive: true });
+
+    // Get folder stats for return
+    const stat = await fs.promises.stat(folderPath);
+    const folderInfo = {
+      id: folderPath,
+      name: path.basename(folderPath),
+      type: "folder" as const,
+      modified: stat.mtime,
+      path: folderPath,
+    };
+
+    return { success: true, folder: folderInfo };
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return { success: false, error: errorMessage };
+  }
+});
+
+ipcMain.handle("delete-file", async (_event, filePath: string) => {
+  try {
+    const stat = await fs.promises.stat(filePath);
+
+    if (stat.isDirectory()) {
+      // Delete directory and all contents
+      await fs.promises.rmdir(filePath, { recursive: true });
+    } else {
+      // Delete file
+      await fs.promises.unlink(filePath);
+    }
+
+    return { success: true };
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return { success: false, error: errorMessage };
+  }
+});
+
+ipcMain.handle(
+  "rename-file",
+  async (_event, oldPath: string, newPath: string) => {
+    try {
+      // Check if destination already exists
+      try {
+        await fs.promises.access(newPath);
+        return {
+          success: false,
+          error: "A file or folder with this name already exists",
+        };
+      } catch {
+        // Destination doesn't exist, which is what we want
+      }
+
+      // Rename/move the file
+      await fs.promises.rename(oldPath, newPath);
+
+      // Get updated file stats
+      const stat = await fs.promises.stat(newPath);
+      const isDirectory = stat.isDirectory();
+      const fileInfo = {
+        id: newPath,
+        name: path.basename(newPath),
+        type: isDirectory ? ("folder" as const) : ("file" as const),
+        size: isDirectory ? undefined : stat.size,
+        modified: stat.mtime,
+        path: newPath,
+      };
+
+      return { success: true, file: fileInfo };
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      return { success: false, error: errorMessage };
+    }
+  }
+);
+
+ipcMain.handle("check-path-exists", async (_event, filePath: string) => {
+  try {
+    await fs.promises.access(filePath);
+    return { exists: true };
+  } catch {
+    return { exists: false };
+  }
+});
+
 // Terminal IPC handlers
 ipcMain.handle("terminal:create", (event) => {
   console.log("Terminal create request received");

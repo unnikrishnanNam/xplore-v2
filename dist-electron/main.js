@@ -84,6 +84,115 @@ ipcMain.handle("list-directory", async (_event, dirPath) => {
 ipcMain.handle("get-home-dir", () => {
   return os.homedir();
 });
+ipcMain.handle(
+  "create-file",
+  async (_event, filePath, content = "") => {
+    try {
+      const directory = path.dirname(filePath);
+      await fs.promises.mkdir(directory, { recursive: true });
+      try {
+        await fs.promises.access(filePath);
+        return { success: false, error: "File already exists" };
+      } catch {
+      }
+      await fs.promises.writeFile(filePath, content, "utf8");
+      const stat = await fs.promises.stat(filePath);
+      const fileInfo = {
+        id: filePath,
+        name: path.basename(filePath),
+        type: "file",
+        size: stat.size,
+        modified: stat.mtime,
+        path: filePath
+      };
+      return { success: true, file: fileInfo };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      return { success: false, error: errorMessage };
+    }
+  }
+);
+ipcMain.handle("create-folder", async (_event, folderPath) => {
+  try {
+    try {
+      const stat2 = await fs.promises.stat(folderPath);
+      if (stat2.isDirectory()) {
+        return { success: false, error: "Folder already exists" };
+      } else {
+        return {
+          success: false,
+          error: "A file with this name already exists"
+        };
+      }
+    } catch {
+    }
+    await fs.promises.mkdir(folderPath, { recursive: true });
+    const stat = await fs.promises.stat(folderPath);
+    const folderInfo = {
+      id: folderPath,
+      name: path.basename(folderPath),
+      type: "folder",
+      modified: stat.mtime,
+      path: folderPath
+    };
+    return { success: true, folder: folderInfo };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return { success: false, error: errorMessage };
+  }
+});
+ipcMain.handle("delete-file", async (_event, filePath) => {
+  try {
+    const stat = await fs.promises.stat(filePath);
+    if (stat.isDirectory()) {
+      await fs.promises.rmdir(filePath, { recursive: true });
+    } else {
+      await fs.promises.unlink(filePath);
+    }
+    return { success: true };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return { success: false, error: errorMessage };
+  }
+});
+ipcMain.handle(
+  "rename-file",
+  async (_event, oldPath, newPath) => {
+    try {
+      try {
+        await fs.promises.access(newPath);
+        return {
+          success: false,
+          error: "A file or folder with this name already exists"
+        };
+      } catch {
+      }
+      await fs.promises.rename(oldPath, newPath);
+      const stat = await fs.promises.stat(newPath);
+      const isDirectory = stat.isDirectory();
+      const fileInfo = {
+        id: newPath,
+        name: path.basename(newPath),
+        type: isDirectory ? "folder" : "file",
+        size: isDirectory ? void 0 : stat.size,
+        modified: stat.mtime,
+        path: newPath
+      };
+      return { success: true, file: fileInfo };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      return { success: false, error: errorMessage };
+    }
+  }
+);
+ipcMain.handle("check-path-exists", async (_event, filePath) => {
+  try {
+    await fs.promises.access(filePath);
+    return { exists: true };
+  } catch {
+    return { exists: false };
+  }
+});
 ipcMain.handle("terminal:create", (event) => {
   console.log("Terminal create request received");
   const win2 = BrowserWindow.fromWebContents(event.sender);

@@ -30,6 +30,12 @@ electron.contextBridge.exposeInMainWorld("electronAPI", {
   close: () => electron.ipcRenderer.send("window-close"),
   getHomeDir: () => electron.ipcRenderer.invoke("get-home-dir"),
   openFile: (filePath) => electron.ipcRenderer.invoke("open-file", filePath),
+  // File operations
+  createFile: (filePath, content) => electron.ipcRenderer.invoke("create-file", filePath, content),
+  createFolder: (folderPath) => electron.ipcRenderer.invoke("create-folder", folderPath),
+  deleteFile: (filePath) => electron.ipcRenderer.invoke("delete-file", filePath),
+  renameFile: (oldPath, newPath) => electron.ipcRenderer.invoke("rename-file", oldPath, newPath),
+  checkPathExists: (filePath) => electron.ipcRenderer.invoke("check-path-exists", filePath),
   // Terminal API
   terminal: {
     create: () => electron.ipcRenderer.invoke("terminal:create"),
